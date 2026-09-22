@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PowerChapter Member Portal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Prototype of the PowerChapter member portal: find your chamber chapter, activate membership, and use chamber-vetted benefits.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div class="ribbon"><div class="wrap"><span><b>PROTOTYPE</b> &nbsp;Sample chapters and profiles for review. County business data is real (U.S. BLS QCEW, 2024).</span><a href="#/privacy">How location is used</a></div></div>
+
+<div class="utility"><div class="wrap">
+  <button class="chip-loc" id="chipLoc" type="button" aria-haspopup="dialog">
+    <svg class="pin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z" stroke="#E2B64B" stroke-width="2"/><circle cx="12" cy="10" r="2.6" fill="#E2B64B"/></svg>
+    <span class="lbl" id="chipLbl">Your chapter:</span>
+    <span class="val" id="chipVal">Choose a chapter</span>
+    <span class="chg">Change</span>
+  </button>
+  <nav class="util-links" aria-label="Utility">
+    <a href="#/for-chambers">For chambers</a>
+    <a href="#/admin">Chamber admin</a>
+    <a href="#/member" id="utilAcct">Sign in</a>
+  </nav>
+</div></div>
+
+<header class="site-header"><div class="wrap" style="position:relative">
+  <a class="brand" href="#/" aria-label="PowerChapter home">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="9" fill="#1B3A6B"/><path d="M20 7l10 5.5v11c0 5-4.3 8.7-10 10.5-5.7-1.8-10-5.5-10-10.5v-11L20 7Z" fill="none" stroke="#E2B64B" stroke-width="2.2"/><path d="M16 26V14h5.2a3.8 3.8 0 0 1 0 7.6H16" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>
+    <span class="wm">Power<span>Chapter</span></span>
+  </a>
+  <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="mainNav">Menu</button>
+  <nav class="nav" id="mainNav" aria-label="Main">
+    <a href="#/chapters" data-nav="chapters">Find a chapter</a>
+    <a href="#/book" data-nav="book">The Book</a>
+    <a href="#/standard" data-nav="standard">The Standard</a>
+    <a href="#/for-chambers" data-nav="for-chambers">For chambers</a>
+    <a class="btn btn-primary btn-sm" href="#/activate" id="navCta">Activate membership</a>
+  </nav>
+</div></header>
+
+<main id="app" tabindex="-1"></main>
+
+<footer class="site-footer"><div class="wrap">
+  <div class="foot-grid">
+    <div>
+      <a class="brand" href="#/"><span class="wm">Power<span>Chapter</span></span></a>
+      <p style="margin-top:12px;max-width:40ch">A nonprofit accreditation and benefits distribution body for Chambers of Commerce. Members reach vetted benefits through their own chamber.</p>
+    </div>
+    <div><h4>Members</h4><a href="#/chapters">Find a chapter</a><a href="#/book">The Book</a><a href="#/activate">Activate membership</a><a href="#/member">Member dashboard</a></div>
+    <div><h4>Chambers</h4><a href="#/for-chambers">Apply for acknowledgement</a><a href="#/standard">The Standard</a><a href="#/admin">Chamber admin</a></div>
+    <div><h4>Trust</h4><a href="#/privacy">Location &amp; privacy</a><a href="#/privacy">What we store</a></div>
+  </div>
+  <div class="foot-legal">
+    <span>Prototype for review. Chapter names, chamber profiles, events and member figures are samples. County business and employee counts: U.S. Bureau of Labor Statistics, QCEW annual averages, 2024.</span>
+    <span>Benefits are provided by independent providers. A readiness assessment is not a loan application, approval, or credit decision.</span>
+  </div>
+</div></footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true"></aside>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<button class="proto-fab" id="protoFab" type="button" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2"/></svg>Demo<span class="t">&nbsp;controls</span></button>
+<div class="proto-pop" id="protoPop" hidden></div>
+
+<script src="assets/vendor/d3.min.js"></script>
+<script src="assets/vendor/topojson-client.min.js"></script>
+<script src="assets/data/territory-data.js"></script>
+<script src="assets/data/zips.js" defer></script>
+<script src="assets/data/chapters.js"></script>
+<script src="assets/app.js" defer></script>
+</body>
+</html>
