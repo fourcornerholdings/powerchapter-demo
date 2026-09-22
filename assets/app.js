@@ -249,7 +249,7 @@ VIEWS.home = {
     '<section class="hero"><div class="wrap hero-grid">' +
       '<div><span class="eyebrow">Chamber of Commerce member benefits</span>' +
       '<h1>The benefits your chamber vetted, organized around your chapter.</h1>' +
-      '<p class="lede">PowerChapter connects members of acknowledged chambers to business-building benefits that carry no fees, no trials, and no data trade-offs. Find your chapter, activate your membership, and everything here follows it.</p>' +
+      '<p class="lede">PowerChapter connects members of acknowledged chambers to business-building services their chamber offers at no cost. Find your chapter, activate your membership, and everything here follows it.</p>' +
       '<div class="hero-search">' + searchBox('heroQ', 'ZIP, city, county, or chamber name') + '<button class="btn btn-primary" type="button" id="heroGo">Find</button></div>' +
       '<div class="hero-actions"><button class="btn-link" id="heroGeo" type="button">' + ICON.target + ' Use my current location</button></div></div>' +
       '<div class="mcard-stage"><div class="mcard" aria-label="Membership card preview">' +
@@ -267,12 +267,12 @@ VIEWS.home = {
       '<div class="steps">' +
         step('01', 'Find your chapter', 'We suggest the nearest acknowledged chamber from your approximate location. You can change it any time, the way you pick a store.') +
         step('02', 'Verify with your chamber', 'Use the invite code or link your chamber sends, or ask your chamber to confirm you. Location alone never decides eligibility.') +
-        step('03', 'Use the benefits', 'Each benefit opens with its provider. Your financial details go straight to that provider, not to PowerChapter or chamber staff.') +
+        step('03', 'Use the benefits', 'Each benefit opens in the provider\'s own account. What you enter there stays with the provider — not with PowerChapter, not with chamber staff.') +
         step('04', 'Stay connected locally', 'Your dashboard carries your chapter\'s news, events, and any new benefits your chamber turns on.') +
       '</div></div></section>' +
 
     '<section class="section band"><div class="wrap">' +
-      '<div class="section-head"><div><span class="eyebrow">From The Book</span><h2 style="margin-top:8px">Benefits that meet the Gold Standard</h2><p class="lede">Every listed benefit is vetted for longevity and reliability before it reaches a single member.</p></div><a class="btn btn-ghost" href="#/book">Open The Book</a></div>' +
+      '<div class="section-head"><div><span class="eyebrow">From The Book</span><h2 style="margin-top:8px">Benefits that meet the Gold Standard</h2><p class="lede">Every listed benefit is vetted for longevity and reliability before it reaches a single member, and offered through your chamber at no cost.</p></div><a class="btn btn-ghost" href="#/book">Open The Book</a></div>' +
       '<div class="grid-3">' + C.BENEFITS.slice(0, 3).map(benefitCard).join('') + '</div>' +
     '</div></section>' +
 
@@ -520,10 +520,13 @@ VIEWS.book = {
   html: function () {
     var cats = ['All'].concat(C.BENEFITS.map(function (b) { return b.cat; }).filter(function (v, i, a) { return a.indexOf(v) === i; }));
     var list = C.BENEFITS.filter(function (b) { return BOOKCAT === 'All' || b.cat === BOOKCAT; });
-    return '<section class="page-head"><div class="wrap"><span class="eyebrow">The Book of Business Building Benefits</span><h1 style="margin-top:8px">Every benefit is vetted before it is listed</h1><p class="lede">Each benefit meets a Gold Standard of longevity and reliability. Members of acknowledged chambers use them at no cost, with no trials and no data trade-offs.</p></div></section>' +
+    return '<section class="page-head"><div class="wrap"><span class="eyebrow">The Book of Business Building Benefits</span><h1 style="margin-top:8px">Every benefit is vetted before it is listed</h1><p class="lede">Each benefit meets a Gold Standard of longevity and reliability. Members of acknowledged chambers use them at no cost through their chamber, with no purchase required.</p></div></section>' +
       '<section class="section-tight"><div class="wrap"><div class="filters" role="group" aria-label="Filter by category">' + cats.map(function (c) { return '<button type="button" data-cat="' + esc(c) + '" aria-pressed="' + (c === BOOKCAT) + '">' + esc(c) + '</button>'; }).join('') + '</div>' +
       '<div class="grid-3">' + list.map(benefitCard).join('') + '</div>' +
-      '<p class="source-note" style="text-align:left">Listed values are as published by PowerChapter. Benefits are delivered by independent providers under their own terms.</p></div></section>';
+      '<div class="callout" style="margin-top:24px"><b>Where your information goes.</b> PowerChapter holds your name, email, business name, chapter, and consent record — nothing else. Each provider runs its own account and holds what you enter there under its own terms. Your chamber keeps its membership records, as it always has. <a href="#/privacy">See the full boundary</a>.</div>' +
+      '</div></section>' +
+      '<section class="section band"><div class="wrap"><div class="section-head"><div><span class="eyebrow">Member questions</span><h2 style="margin-top:8px">What members ask before they sign up</h2></div></div>' +
+      '<div class="grid-2">' + C.BENEFIT_FAQ.map(function (f) { return '<div class="qa"><h4>' + esc(f.q) + '</h4><p class="muted small">' + esc(f.a) + '</p></div>'; }).join('') + '</div></div></section>';
   },
   mount: function () { $$('[data-cat]').forEach(function (b) { b.addEventListener('click', function () { BOOKCAT = b.dataset.cat; render(); }); }); }
 };
@@ -533,24 +536,29 @@ VIEWS.benefit = {
   html: function (r) {
     var b = C.BENEFITS.filter(function (x) { return x.id === r.arg; })[0]; if (!b || !b.detail) return VIEWS.notfound.html();
     var c = S.home ? CH[S.home] : current(), req = S.activated.filter(function (a) { return a.id === b.id; })[0];
-    return '<section class="page-head"><div class="wrap"><div class="crumbs"><a href="#/book">The Book</a> / ' + esc(b.provider) + '</div><span class="eyebrow">' + esc(b.provider) + ' · ' + esc(b.cat) + '</span><h1 style="margin-top:8px">Free Business Credit &amp; Funding Readiness Assessment</h1><p class="lede">Know where your business stands before you apply. Part of the ' + esc(b.provider) + ' ' + esc(b.short) + ', listed at ' + esc(b.listedValue) + '.</p></div></section>' +
+    var isZen = b.id === 'zenhur';
+    return '<section class="page-head"><div class="wrap"><div class="crumbs"><a href="#/book">The Book</a> / ' + esc(b.provider) + '</div><span class="eyebrow">' + esc(b.provider) + ' · ' + esc(b.cat) + '</span><h1 style="margin-top:8px">' + esc(b.title) + '</h1><p class="lede">' + esc(b.blurb) + '</p></div></section>' +
       '<section class="section-tight"><div class="wrap two-col">' +
       '<div style="display:flex;flex-direction:column;gap:24px">' +
-        '<p class="muted" style="max-width:65ch">Before you apply for a business credit card, a line of credit, or a loan, it helps to know how your business looks to the people reviewing the application. This assessment gives you that picture: what is working, what is missing, and what to do next. There is no charge, and you do not have to buy anything to receive it.</p>' +
-        '<div><h3 style="margin-bottom:12px">What your assessment includes</h3><div class="inc">' +
+        (b.descriptionPending
+          ? '<div class="callout" style="border-left-color:var(--warn)"><b>Description pending.</b> ' + esc(b.provider) + ' has not yet supplied a description of what the app does. This page stays in draft until it does — a benefit page should say what the service is, in the provider\'s own words.</div>'
+          : '<p class="muted" style="max-width:65ch">' + esc(b.whatItIs) + '</p>') +
+        (isZen ? '<div><h3 style="margin-bottom:12px">What the free readiness assessment includes</h3><div class="inc">' +
           '<div><h4>Business credit</h4><p>What the available information shows about your business credit profile, and where more preparation could help.</p></div>' +
           '<div><h4>Funding readiness</h4><p>How ready your business is for the funding you want, what to prepare, and potential paths for further review.</p></div>' +
-          '<div><h4>Personal credit</h4><p>Which factors in the credit information you share may affect business financing, and why they matter.</p></div></div></div>' +
-        '<div class="card"><h3>What you may be asked for</h3><ul class="checklist"><li>Basic business details: legal name, entity type, location, industry, and time in business</li><li>Your funding goals: what you are looking for, roughly how much, and what it is for</li><li>A general picture of your business finances</li><li>Credit information you choose to provide, such as a recent credit report or score</li><li>Your consent to the assessment and to how your information will be used</li></ul></div>' +
-        '<div class="callout"><b>Where your information goes.</b> You submit it through the provider\'s secure intake, directly to the assessment service. PowerChapter and your chamber\'s staff do not receive your financial information. PowerChapter passes only your chapter reference so the provider knows which chamber you came from.</div>' +
-        '<div class="callout" style="border-left-color:var(--ink-3)"><b>Good to know.</b> This is a preliminary readiness assessment. It is not an approval, preapproval, credit decision, or commitment to provide financing. Results and funding amounts are not guaranteed. A self-reported credit score is not a verified credit report, and your results will note where report information is missing. The free assessment does not include credit-report retrieval or credit monitoring. Any credit inquiry requires separate disclosures and your authorization.</div>' +
+          '<div><h4>Personal credit</h4><p>Which factors in the credit information you share may affect business financing, and why they matter.</p></div></div>' +
+          '<p class="hint" style="margin-top:10px">Offered inside the dashboard. You choose whether to request it.</p></div>' : '') +
+        '<div class="card"><h3>What to know</h3><ul class="checklist">' + b.whatToKnow.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+        (isZen ? '<div class="card"><h3>What you may be asked for</h3><ul class="checklist"><li>Basic business details: legal name, entity type, location, industry, and time in business</li><li>Your funding goals: what you are looking for, roughly how much, and what it is for</li><li>A general picture of your business finances</li><li>Credit information you choose to provide, such as a recent report or score</li><li>Your consent to the review and to how your information will be used</li></ul></div>' : '') +
+        '<div class="callout"><b>Two separate accounts.</b> Your PowerChapter membership and your ' + esc(b.provider) + ' account are not the same login. PowerChapter passes your chapter reference so ' + esc(b.provider) + ' knows which chamber you came from. Everything you enter with ' + esc(b.provider) + ' stays with ' + esc(b.provider) + '.</div>' +
+        (isZen ? '<div class="callout" style="border-left-color:var(--ink-3)"><b>Good to know.</b> A readiness assessment is not an approval, preapproval, credit decision, or commitment to provide financing. Results and funding amounts are not guaranteed. A self-reported credit score is not a verified credit report, and results note where report information is missing. Any credit inquiry requires separate disclosures and your authorization.</div>' : '') +
       '</div>' +
-      '<aside class="sticky-side"><div class="card" style="display:flex;flex-direction:column;gap:14px"><span class="eyebrow">Request your assessment</span>' +
-        '<div class="kv on-dark" style="--panel-2:var(--surface-2);--panel-line:var(--line);--panel-ink:var(--ink);--panel-mute:var(--ink-3)"><div><small>Cost to you</small><b>$0</b></div><div><small>Purchase required</small><b>None</b></div></div>' +
+      '<aside class="sticky-side"><div class="card" style="display:flex;flex-direction:column;gap:14px"><span class="eyebrow">Get access</span>' +
+        '<div class="kv on-dark" style="--panel-2:var(--surface-2);--panel-line:var(--line);--panel-ink:var(--ink);--panel-mute:var(--ink-3)"><div><small>Listed value</small><b style="font-size:.86rem">' + esc(b.listedValue) + '</b></div><div><small>Your cost through your chamber</small><b>$0</b></div></div>' +
         '<div class="status-line">' + (c ? 'Chapter: <b>' + esc(c.name.replace('Sample Chapter — ', '')) + '</b>' : 'No chapter selected') + '</div>' +
-        (req ? '<div class="status-line"><span class="pill ver">Requested</span> ' + esc(req.when) + '</div>' : '') +
-        '<button class="btn btn-gold" type="button" id="reqBtn">' + (req ? 'Open the secure intake again' : 'Request your assessment') + '</button>' +
-        '<p class="hint">Opens the provider\'s secure intake in a new window.</p></div></aside>' +
+        (req ? '<div class="status-line"><span class="pill ver">Access requested</span> ' + esc(req.when) + '</div>' : '') +
+        '<button class="btn btn-gold" type="button" id="reqBtn">' + (req ? 'Open ' + esc(b.provider) + ' again' : 'Get access') + '</button>' +
+        '<p class="hint">' + (b.intakeUrl ? 'Opens ' + esc(b.intakeUrl.replace('https://', '')) + ' in a new window.' : 'Access details come from your chamber.') + '</p></div></aside>' +
       '</div></section>';
   },
   mount: function (r) {
@@ -560,9 +568,10 @@ VIEWS.benefit = {
       var hc = CH[S.home];
       if (S.homeStatus !== 'verified') return modal('Waiting on your chamber', '<p class="muted">' + esc(hc.name) + ' has not verified your membership yet. You can enter the invite code your chamber sent from your dashboard.</p>', [{ t: 'Go to my dashboard', cls: 'btn-primary', go: '#/member' }]);
       if (hc.status !== 'live' || !benefitOn(hc.id, b.id)) return modal('Not live at your chapter yet', '<p class="muted">' + esc(hc.name) + ' has not turned this benefit on yet. We will show it on your dashboard when it goes live.</p>', [{ t: 'Close', cls: 'btn-ghost' }]);
+      if (!b.intakeUrl) return modal('Access comes from your chamber', '<p class="muted">' + esc(b.provider) + ' has not published a sign-up link yet. ' + esc(hc.name) + ' will send access details to its members once it does.</p>', [{ t: 'Close', cls: 'btn-ghost' }]);
       var ref = 'PC-' + hc.id.slice(0, 3).toUpperCase() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-      modal('You are leaving PowerChapter', '<p class="muted">Next, ' + esc(b.provider) + '\'s secure intake opens. PowerChapter sends only these two references:</p><div class="table-wrap"><table class="data"><tbody><tr><td>Chapter</td><td class="n">' + esc(hc.id) + '</td></tr><tr><td>One-time reference</td><td class="n">' + ref + '</td></tr></tbody></table></div><p class="hint">Your name, contact details, and financial information are entered directly with the provider. In this prototype the intake link is not configured.</p>',
-        [{ t: 'Continue to secure intake', cls: 'btn-gold', fn: function () { var ex = S.activated.filter(function (a) { return a.id === b.id; })[0]; if (!ex) S.activated.push({ id: b.id, ref: ref, when: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }); save(); toast('Prototype: the intake link is not configured yet.'); render(); } }, { t: 'Cancel', cls: 'btn-ghost' }]);
+      modal('You are leaving PowerChapter', '<p class="muted">Next, ' + esc(b.provider) + ' opens at <span class="mono">' + esc(b.intakeUrl.replace('https://', '')) + '</span>. PowerChapter sends only these two references:</p><div class="table-wrap"><table class="data"><tbody><tr><td>Chapter</td><td class="n">' + esc(hc.id) + '</td></tr><tr><td>One-time reference</td><td class="n">' + ref + '</td></tr></tbody></table></div><p class="hint">Your name, contact details, and anything financial are entered directly with ' + esc(b.provider) + ', in its own account. PowerChapter does not receive them.</p>',
+        [{ t: 'Continue to ' + b.provider, cls: 'btn-gold', fn: function () { var ex = S.activated.filter(function (a) { return a.id === b.id; })[0]; if (!ex) S.activated.push({ id: b.id, ref: ref, when: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }); save(); window.open(b.intakeUrl, '_blank', 'noopener'); render(); } }, { t: 'Cancel', cls: 'btn-ghost' }]);
     });
   }
 };
@@ -642,7 +651,7 @@ VIEWS.member = {
         '</div>' +
         '<div style="display:flex;flex-direction:column;gap:20px">' +
           '<div class="card"><h3>From your chamber</h3>' + ann.map(function (a) { return '<div class="ann"><b>' + esc(a.t) + '</b><span>' + esc(a.when) + '</span></div>'; }).join('') + '</div>' +
-          '<div class="card"><h3>What PowerChapter stores about you</h3><div class="table-wrap"><table class="data"><tbody><tr><td>Name</td><td>' + esc(S.user.name) + '</td></tr><tr><td>Email</td><td>' + esc(S.user.email) + '</td></tr><tr><td>Business</td><td>' + esc(S.user.biz || '—') + '</td></tr><tr><td>Chapter</td><td>' + esc(h.name) + '</td></tr><tr><td>Consent</td><td>Given at activation</td></tr></tbody></table></div><p class="hint" style="margin-top:10px">No financial information, credit data, or location history. Providers keep what you give them under their own terms.</p></div>' +
+          '<div class="card"><h3>What PowerChapter stores about you</h3><div class="table-wrap"><table class="data"><tbody><tr><td>Name</td><td>' + esc(S.user.name) + '</td></tr><tr><td>Email</td><td>' + esc(S.user.email) + '</td></tr><tr><td>Business</td><td>' + esc(S.user.biz || '—') + '</td></tr><tr><td>Chapter</td><td>' + esc(h.name) + '</td></tr><tr><td>Consent</td><td>Given at activation</td></tr></tbody></table></div><p class="hint" style="margin-top:10px">That is the whole record. No financial or credit information, nothing from your provider accounts, and no location history. Each provider account is a separate login holding its own data. <a href="#/privacy">See the boundary</a>.</p></div>' +
           '<button class="btn btn-ghost" type="button" id="signOut">Sign out and clear this demo</button>' +
         '</div>' +
       '</div></section>';
@@ -676,6 +685,14 @@ VIEWS.admin = {
           '</div>' +
           '<div style="display:flex;flex-direction:column;gap:20px">' +
             '<div class="card"><h3>Benefits for your members</h3>' + (c.status !== 'live' ? '<p class="muted small" style="margin-bottom:10px">Your chapter is onboarding. Toggles take effect at launch.</p>' : '') + '<div class="list">' + C.BENEFITS.filter(function (b) { return !b.slot; }).map(function (b) { return '<div class="it"><div class="nm"><b>' + esc(b.short) + '</b><span>' + esc(b.provider) + '</span></div><label class="toggle"><input type="checkbox" data-tog="' + b.id + '"' + (benefitOn(c.id, b.id) ? ' checked' : '') + ' aria-label="Offer ' + esc(b.short) + '"><span></span></label></div>'; }).join('') + '</div></div>' +
+            '<div class="card"><h3>Your acknowledged-chamber guide</h3><div class="list">' +
+              '<div class="it"><div class="nm"><b>PowerChapter generates no revenue</b><span>A nonprofit. Its operators receive no income from it.</span></div></div>' +
+              '<div class="it"><div class="nm"><b>No cost to your chamber or your members</b><span>Benefits are offered through your chamber at no charge under current provider agreements.</span></div></div>' +
+              '<div class="it"><div class="nm"><b>Your member records stay yours</b><span>PowerChapter holds only what a member enters when activating: name, email, business, chapter, consent.</span></div></div>' +
+              '<div class="it"><div class="nm"><b>Benefits carry your name</b><span>Members experience the program as your chamber\'s member benefit program.</span></div></div>' +
+              '<div class="it"><div class="nm"><b>Every benefit meets the Gold Standard</b><span>Evaluated for longevity and reliability before it is listed.</span></div></div>' +
+              '<div class="it"><div class="nm"><b>No trade-offs</b><span>No data harvesting, no upsell funnels, no enrollment friction built to capture leads.</span></div></div>' +
+            '</div><p class="hint" style="margin-top:12px">If a provider ever charges your members, collects data without consent, or restricts access, contact PowerChapter. The benefit is removed from The Book and every chamber is notified.</p></div>' +
             '<div class="card"><h3>What you can and cannot see</h3><ul class="checklist"><li>Who has activated, and when</li><li>Totals of benefit handoffs by benefit</li><li>Member feedback your chamber collects</li></ul><p class="hint" style="margin-top:12px">Not visible to staff: members\' financial information, credit information, assessment results, or anything entered with a provider.</p></div>' +
           '</div>' +
         '</div></div></section>';
@@ -692,37 +709,91 @@ VIEWS.admin = {
 };
 
 /* ---------------- STANDARD / CHAMBERS / PRIVACY ---------------- */
+var PROXIES = [
+  ['Length of operation', 'How long the chamber has been serving its community. A chamber active for 20 or more years has demonstrated durability — it has survived economic cycles, leadership transitions, and changes in its community. Time in service is the most fundamental proof of institutional viability.'],
+  ['Member retention', 'Do businesses stay, or do they churn? Retention is the most honest reputation signal, because members vote with their feet. A chamber that keeps its members year over year is delivering value those members recognize. High turnover says the pitch is stronger than the experience.'],
+  ['Community visibility', 'Is the chamber a recognized voice in its region? Do local media, government, and institutions reference or partner with it? A chamber nobody turns to is not providing institutional leadership, however many members it has.'],
+  ['Peer recognition', 'Do other chambers know it? Is it active in state or national chamber associations? Reputation among peers is harder to manufacture than reputation among members, because peers have no reason to recognize an institution they do not respect.'],
+  ['Leadership stability', 'How often does executive leadership turn over? Long tenure, or planned and orderly transitions, signals an institution that is governed well. Planned retirements and growth hires are not red flags; a pattern of instability — three or more leaders in ten years without clear explanation — is.']
+];
 VIEWS.standard = {
   html: function () {
-    var crit = [['Length of operation', 'How long the chamber has served its community.'], ['Member retention', 'Whether members stay year over year.'], ['Community visibility', 'How present the chamber is in local business life.'], ['Peer recognition', 'How other chambers and civic institutions regard it.'], ['Leadership stability', 'Continuity in the chamber\'s leadership.']];
-    return '<section class="page-head"><div class="wrap"><span class="eyebrow">The Acknowledgement Standard</span><h1 style="margin-top:8px">Reputation is the gate</h1><p class="lede">PowerChapter acknowledges chambers on reputation. Size, revenue, and member count are not criteria.</p></div></section>' +
-      '<section class="section-tight"><div class="wrap two-col"><div class="card"><h3>What acknowledgement weighs</h3><div class="list">' + crit.map(function (x) { return '<div class="it"><div class="nm"><b>' + x[0] + '</b><span>' + x[1] + '</span></div></div>'; }).join('') + '</div></div>' +
-      '<div class="card"><h3>What acknowledged chambers receive</h3><ul class="checklist"><li>Every benefit in The Book, offered under the chamber\'s own name</li><li>No cost to the chamber or its members</li><li>No added administration: members verify themselves with an invite code</li><li>A chapter page, member dashboard, and totals-only reporting</li></ul><a class="btn btn-primary" href="#/for-chambers" style="margin-top:18px">Apply for acknowledgement</a></div></div></section>';
+    return '<section class="page-head"><div class="wrap"><span class="eyebrow">The Acknowledgement Standard</span><h1 style="margin-top:8px">Reputation is the gate</h1><p class="lede">A PowerChapter Acknowledged Chamber is acknowledged for its demonstrated standing in its business community. Not size, not revenue, not member count — standing.</p></div></section>' +
+      '<section class="section-tight"><div class="wrap">' +
+      '<div class="section-head"><div><span class="eyebrow">What acknowledgement weighs</span><h2 style="margin-top:8px">Five proxies for standing</h2></div></div>' +
+      '<div class="grid-2">' + PROXIES.map(function (p, i) { return '<div class="card"><div style="display:flex;gap:12px;align-items:center"><span class="rank">' + (i + 1) + '</span><h3>' + esc(p[0]) + '</h3></div><p class="muted small" style="margin-top:10px">' + esc(p[1]) + '</p></div>'; }).join('') + '</div>' +
+      '</div></section>' +
+      '<section class="section band"><div class="wrap two-col">' +
+        '<div class="card"><h3>What is not evaluated</h3><div class="list">' +
+          '<div class="it"><div class="nm"><b>Member count minimums</b><span>There is no minimum. A 150-member chamber can be acknowledged; a 3,000-member chamber can be declined.</span></div></div>' +
+          '<div class="it"><div class="nm"><b>Revenue thresholds</b><span>A chamber\'s financial size is not a proxy for its reputation.</span></div></div>' +
+          '<div class="it"><div class="nm"><b>Geographic requirements</b><span>Rural, suburban and urban chambers are evaluated on the same standard.</span></div></div>' +
+        '</div><p class="hint" style="margin-top:14px">These are excluded because they push toward size-based credentialing, which is the opposite of what this standard is for. A 150-member chamber run with integrity for 30 years has proven something a two-year-old chamber chasing growth has not.</p></div>' +
+        '<div class="card"><h3>How the standard is applied</h3><ul class="checklist">' +
+          '<li>The same five proxies, the same questions, and the same criteria for every applicant</li>' +
+          '<li>Judged as a whole, not scored — a chamber strong in four areas and weak in one may still be acknowledged</li>' +
+          '<li>Every decision documented with a written rationale mapped to the five proxies</li>' +
+          '<li>Acknowledgement is ongoing, not annual, and may be reviewed if credible information suggests the standard is no longer met</li>' +
+        '</ul><a class="btn btn-primary" href="#/for-chambers" style="margin-top:18px">How to apply</a></div>' +
+      '</div></section>';
   }
 };
 VIEWS['for-chambers'] = {
   html: function () {
-    return '<section class="page-head"><div class="wrap"><span class="eyebrow">For chambers</span><h1 style="margin-top:8px">Bring vetted benefits to your members under your own name</h1><p class="lede">Acknowledged chambers get a chapter page, member verification tools, and every benefit in The Book, at no cost.</p></div></section>' +
-      '<section class="section-tight"><div class="wrap"><div class="steps">' +
-        step('01', 'Apply', 'Tell PowerChapter about your chamber. Reputation is the gate: longevity, retention, visibility, peer recognition, and leadership.') +
-        step('02', 'Review', 'PowerChapter reviews your application against the Acknowledgement Standard.') +
-        step('03', 'Onboard', 'Your chapter page goes up, your service-area counties are mapped, and you receive your invite code.') +
-        step('04', 'Launch', 'Share the invite code with members. Benefits go live and your admin view shows activation totals.') +
-      '</div><div class="hero-actions" style="margin-top:24px"><a class="btn btn-primary" href="https://www.powerchapter.com/apply.html" target="_blank" rel="noopener">Start the application</a><a class="btn btn-ghost" href="#/admin">Preview the chamber admin</a></div></div></section>';
+    var secs = [
+      ['Institutional identity', 'Legal and common name, year established, address, website, primary contact, and current executive leadership.'],
+      ['Length of operation', 'Year established, whether operation has been continuous, and years serving the current community.'],
+      ['Member retention', 'Retention rate or a description of it, how retention is tracked, and why members renew or leave. Member count is collected for context only and is not a criterion.'],
+      ['Community visibility', 'Media references, partnerships with local government and civic institutions, and two or three examples of community work in the past 24 months.'],
+      ['Peer recognition', 'State association and U.S. Chamber membership, regional coalitions, and collaborations with other chambers.'],
+      ['Leadership stability', 'Current leadership and year appointed, how many have held the role in the past decade, average tenure, and the governance structure.'],
+      ['Acknowledgement interest', 'How the chamber heard about PowerChapter, why it is interested, and anything else about its standing worth knowing.']
+    ];
+    return '<section class="page-head"><div class="wrap"><span class="eyebrow">For chambers</span><h1 style="margin-top:8px">Apply for Acknowledgement</h1><p class="lede">Acknowledged chambers offer every benefit in The Book to their members under their own name, at no cost to the chamber and no cost to members.</p></div></section>' +
+      '<section class="section-tight"><div class="wrap">' +
+      '<div class="steps">' +
+        step('01', 'Inquiry', 'Tell PowerChapter about your chamber. You receive an overview and the Acknowledgement Application.') +
+        step('02', 'Application', 'A formal application covering your chamber\'s history, community role, retention, and leadership. Submit it on your own timeline.') +
+        step('03', 'Review', 'A substantive review against the five proxies of the Acknowledgement Standard, documented with a written rationale.') +
+        step('04', 'Decision', 'Approved, held for more detail, or declined. A decline is not permanent — chambers are welcome to apply again.') +
+      '</div>' +
+      '<div class="steps" style="margin-top:16px">' +
+        step('05', 'Onboarding', 'An orientation call: what Acknowledgement means, what is in The Book, how members get access, and who does what.') +
+        step('06', 'Launch', 'Your chapter page goes up, your service-area counties are mapped, and you receive the invite code to share with members.') +
+        step('07', 'Follow-up', 'Check-ins at 30 and 90 days, then periodic contact. No fees, no reporting requirements, no data-sharing obligations.') +
+        step('08', 'Ongoing', 'Acknowledgement continues without reapplication, and may be reviewed if a chamber\'s standing materially changes.') +
+      '</div>' +
+      '<div class="two-col" style="margin-top:32px">' +
+        '<div class="card"><h3>What the application asks</h3><div class="list">' + secs.map(function (x) { return '<div class="it"><div class="nm"><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div></div>'; }).join('') + '</div>' +
+        '<p class="hint" style="margin-top:12px">No timeline is promised at inquiry. Review is substantive, and every applicant receives the same process.</p></div>' +
+        '<div style="display:flex;flex-direction:column;gap:20px">' +
+        '<div class="card"><h3>What your chamber commits to</h3><ul class="checklist"><li>Offer the benefits under your own name, at no charge to members</li><li>Keep your member relationships and member records with your chamber</li><li>Represent the program accurately, and never sell or gate access to a benefit offered at no cost</li><li>Continue operating with the standing that earned Acknowledgement</li></ul></div>' +
+        '<div class="card"><h3>What PowerChapter commits to</h3><ul class="checklist"><li>Curate The Book and manage the provider relationships</li><li>Apply the standard consistently and document every decision</li><li>Charge your chamber and your members nothing</li><li>Hold no member financial or credit information, ever</li></ul>' +
+        '<a class="btn btn-primary" href="https://www.powerchapter.com/apply.html" target="_blank" rel="noopener" style="margin-top:16px">Start the application</a></div>' +
+        '</div>' +
+      '</div></div></section>';
   }
 };
 VIEWS.privacy = {
   html: function () {
-    return '<section class="page-head"><div class="wrap"><span class="eyebrow">Location &amp; privacy</span><h1 style="margin-top:8px">How we pick your chapter, and what we keep</h1><p class="lede">Location is a convenience for choosing a chapter. It never decides who is a member.</p></div></section>' +
-      '<section class="section-tight"><div class="wrap grid-2">' +
+    return '<section class="page-head"><div class="wrap"><span class="eyebrow">Data, location &amp; privacy</span><h1 style="margin-top:8px">Who holds what, and why</h1><p class="lede">Three organizations are involved in a benefit: PowerChapter, your chamber, and the provider. Each holds a different thing, and the boundaries do not move.</p></div></section>' +
+      '<section class="section-tight"><div class="wrap">' +
+      '<div class="card"><h3>The boundary</h3><div class="table-wrap"><table class="data"><thead><tr><th>Who</th><th>Holds</th><th>Never holds</th></tr></thead><tbody>' +
+        '<tr><td><b>PowerChapter</b></td><td>Your name, email, business name, chapter, and consent record. Before you have an account, only the chapter you picked, kept in your browser.</td><td>Financial or credit information, anything you submit to a provider, your chamber\'s membership records, a location history</td></tr>' +
+        '<tr><td><b>Your chamber</b></td><td>Its own membership records, as it always has, plus counts of how many members activated and used a benefit.</td><td>What you submit to a provider, your credit or financial information, your provider results</td></tr>' +
+        '<tr><td><b>The provider</b></td><td>Your account with that provider and everything you enter in it, under its own terms and privacy policy.</td><td>Anything from PowerChapter beyond your chapter reference and a one-time reference number</td></tr>' +
+      '</tbody></table></div></div>' +
+      '<div class="grid-2" style="margin-top:20px">' +
+        '<div class="card"><h3>Separate logins, on purpose</h3><p class="muted small">Your PowerChapter membership is one account. Each provider account is another — Zenhur\'s dashboard, for example, is reached at <span class="mono">admin.zenhur.com</span> and is governed by Zenhur\'s own terms. PowerChapter passes a chapter reference so the provider knows which chamber you came from, and nothing else. Signing out of one does not sign you out of the other, and closing one does not close the other.</p><p class="muted small" style="margin-top:10px">This is why the two are kept apart: the work you do inside a provider\'s platform — funding, credit, anything financial — belongs in that provider\'s system, not in a chamber directory.</p></div>' +
         '<div class="card"><h3>How your chapter is chosen</h3><div class="table-wrap"><table class="data"><thead><tr><th>Order</th><th>Signal</th><th>What it does</th></tr></thead><tbody>' +
-          '<tr><td class="num">1</td><td>Verified membership</td><td>Your chamber confirmed you. This sets your membership chapter and your benefits.</td></tr>' +
+          '<tr><td class="num">1</td><td>Verified membership</td><td>Your chamber confirmed you. Sets your membership chapter and your benefits.</td></tr>' +
           '<tr><td class="num">2</td><td>Your saved choice</td><td>The chapter you picked. Changes local news and events.</td></tr>' +
           '<tr><td class="num">3</td><td>Device location</td><td>Used only when you tap "Use my current location" and your browser asks permission.</td></tr>' +
-          '<tr><td class="num">4</td><td>Approximate location</td><td>Estimated from your internet connection to suggest the nearest chapter. Often off by many miles, so we always ask you to confirm.</td></tr>' +
+          '<tr><td class="num">4</td><td>Approximate location</td><td>Estimated from your internet connection to suggest the nearest chapter. Often off by many miles, so we always ask you to confirm. Not stored.</td></tr>' +
           '<tr><td class="num">5</td><td>Your search</td><td>ZIP, city, county, or chamber name.</td></tr>' +
-        '</tbody></table></div></div>' +
-        '<div class="card"><h3>What we store</h3><ul class="checklist"><li>With an account: name, email, business name, chapter, and your consent record</li><li>Without an account: your chosen chapter, kept in this browser only</li><li>We do not keep a location history</li><li>We never receive financial or credit information. You give that directly to a benefit provider, under its terms</li></ul><p class="hint" style="margin-top:12px">Prototype note: everything in this demo stays in your browser. Use "Prototype controls" to reset it.</p></div>' +
+        '</tbody></table></div><p class="hint" style="margin-top:10px">Location never decides eligibility. Only your chamber\'s verification does.</p></div>' +
+      '</div>' +
+      '<div class="callout" style="margin-top:20px"><b>Prototype note.</b> Everything in this demo stays in your browser. Nothing is sent anywhere. Use "Demo controls" to reset it.</div>' +
       '</div></section>';
   }
 };
