@@ -45,7 +45,7 @@ window.PC_CONFIG = {
   BENEFITS: [
     { id:"zenhur", provider:"Zenhur", title:"All Capital Access Dashboard", short:"All Capital Access Dashboard",
       cat:"Capital access", listedValue:"$2,000 per year per user", live:true, detail:true,
-      intakeUrl:"https://admin.zenhur.com",
+      intakeUrl:"https://admin.zenhur.com", logo:"assets/photos/zenhur-logo.png",
       blurb:"A capital access platform that gives businesses visibility into funding sources, capital options, and financial access tools.",
       whatItIs:"Zenhur's All Capital Access Dashboard is a capital access platform that provides businesses with visibility into funding sources, capital options, and financial access tools. The dashboard helps you identify, evaluate, and pursue funding sources that may be relevant to your business.",
       whatToKnow:[
@@ -55,7 +55,7 @@ window.PC_CONFIG = {
         "For questions about whether this benefit is part of your membership, contact your chamber."
       ] },
     { id:"jacht", provider:"Jacht", title:"Jacht App", short:"Jacht App", cat:"Business tools",
-      listedValue:"$99.99 per user per month ($1,199.88 per year)", live:true, detail:true, descriptionPending:true,
+      listedValue:"$99.99 per user per month ($1,199.88 per year)", live:true, detail:true, descriptionPending:true, logo:null,
       intakeUrl:null,
       blurb:"A business service application listed in The Book. The provider's description will appear here once Jacht supplies it.",
       whatItIs:"",

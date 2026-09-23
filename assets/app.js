@@ -316,7 +316,8 @@ function bindNearest() {
 }
 function benefitCard(b) {
   if (b.slot) return '<div class="bcard slot"><div class="body"><span class="prov">' + esc(b.cat) + '</span><h3>' + esc(b.title) + '</h3><p class="muted small">' + esc(b.blurb) + '</p></div></div>';
-  var inner = photo('assets/photos/benefit-' + b.id + '.jpg', 'Benefit image · 1200×600') +
+  var inner = (b.logo ? '<div class="logo-plate"><img src="' + esc(b.logo) + '" alt="' + esc(b.provider) + '"></div>'
+    : '<div class="logo-plate pending"><span>' + esc(b.provider) + '</span><small>Logo pending</small></div>') +
     '<div class="body"><span class="prov">' + esc(b.provider) + ' · ' + esc(b.cat) + '</span><h3>' + esc(b.short) + '</h3><p class="muted small">' + esc(b.blurb) + '</p>' +
     '<div class="val"><span class="muted">Listed value</span><b>' + esc(b.listedValue) + '</b></div></div>';
   return '<article class="bcard">' + (b.detail ? '<a class="cover" href="#/benefit/' + b.id + '">' + inner + '</a>' : inner) + '</article>';
@@ -492,7 +493,7 @@ VIEWS.chapter = {
           '<div class="card"><h3>Chapter leadership</h3><div class="people">' + C.SAMPLE_LEADERS.map(function (p, i) { return '<div class="person">' + photo('assets/photos/' + c.id + '-leader-' + (i + 1) + '.jpg', 'Headshot') + '<b>Name pending</b><span>' + esc(p.r) + '</span></div>'; }).join('') + '</div></div>' +
         '</div>' +
         '<div style="display:flex;flex-direction:column;gap:20px">' +
-          '<div class="card"><h3>Benefits at this chapter</h3>' + (bs.length ? '<div class="list">' + bs.map(function (b) { return '<div class="it"><div class="nm"><b>' + esc(b.short) + '</b><span>' + esc(b.provider) + ' · ' + esc(b.cat) + '</span></div>' + (b.detail ? '<a class="btn btn-ghost btn-sm" href="#/benefit/' + b.id + '">Details</a>' : '') + '</div>'; }).join('') + '</div>' : '<p class="muted">Benefits go live when this chapter finishes onboarding.</p>') + '</div>' +
+          '<div class="card"><h3>Benefits at this chapter</h3>' + (bs.length ? '<div class="list">' + bs.map(function (b) { return '<div class="it">' + (b.logo ? '<img class="row-logo" src="' + esc(b.logo) + '" alt="' + esc(b.provider) + '">' : '') + '<div class="nm"><b>' + esc(b.short) + '</b><span>' + esc(b.provider) + ' · ' + esc(b.cat) + '</span></div>' + (b.detail ? '<a class="btn btn-ghost btn-sm" href="#/benefit/' + b.id + '">Details</a>' : '') + '</div>'; }).join('') + '</div>' : '<p class="muted">Benefits go live when this chapter finishes onboarding.</p>') + '</div>' +
           '<div class="card"><h3>Upcoming events <span class="sample">sample</span></h3><div class="events">' + C.SAMPLE_EVENTS.map(function (e) { return '<div class="event"><div class="date"><small>' + e.m + '</small><b>' + e.d + '</b></div><div><b>' + esc(e.t) + '</b><div class="small muted">' + esc(e.w) + '</div></div></div>'; }).join('') + '</div></div>' +
           '<div class="card"><h3>Announcements</h3>' + ann.map(function (a) { return '<div class="ann"><b>' + esc(a.t) + '</b><span>' + esc(a.when) + '</span></div>'; }).join('') + '</div>' +
         '</div>' +
@@ -537,7 +538,9 @@ VIEWS.benefit = {
     var b = C.BENEFITS.filter(function (x) { return x.id === r.arg; })[0]; if (!b || !b.detail) return VIEWS.notfound.html();
     var c = S.home ? CH[S.home] : current(), req = S.activated.filter(function (a) { return a.id === b.id; })[0];
     var isZen = b.id === 'zenhur';
-    return '<section class="page-head"><div class="wrap"><div class="crumbs"><a href="#/book">The Book</a> / ' + esc(b.provider) + '</div><span class="eyebrow">' + esc(b.provider) + ' · ' + esc(b.cat) + '</span><h1 style="margin-top:8px">' + esc(b.title) + '</h1><p class="lede">' + esc(b.blurb) + '</p></div></section>' +
+    return '<section class="page-head"><div class="wrap"><div class="crumbs"><a href="#/book">The Book</a> / ' + esc(b.provider) + '</div>' +
+      (b.logo ? '<div class="logo-plate lg" style="margin-bottom:16px"><img src="' + esc(b.logo) + '" alt="' + esc(b.provider) + '"></div>' : '') +
+      '<span class="eyebrow">' + esc(b.provider) + ' · ' + esc(b.cat) + '</span><h1 style="margin-top:8px">' + esc(b.title) + '</h1><p class="lede">' + esc(b.blurb) + '</p></div></section>' +
       '<section class="section-tight"><div class="wrap two-col">' +
       '<div style="display:flex;flex-direction:column;gap:24px">' +
         (b.descriptionPending
@@ -646,7 +649,7 @@ VIEWS.member = {
             (S.homeStatus !== 'verified' ? '<form id="lateCode" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><input class="input mono" id="lateCodeIn" placeholder="Have an invite code?" style="max-width:220px" aria-label="Invite code"><button class="btn btn-gold btn-sm" type="submit">Verify</button></form><span class="note" style="font-size:.78rem;color:var(--panel-mute)">Prototype: code is ' + esc(codeFor(h)) + ', or approve yourself from the chamber admin view.</span>' : '') +
             (b && b.id !== h.id ? '<div class="empty" style="margin-top:6px">You are browsing <b>' + esc(b.name) + '</b>. Local news follows the browsing chapter. Benefits follow your membership chapter. <button class="btn-link" type="button" id="backHome" style="color:var(--accent)">Switch back</button></div>' : '') +
             '<div class="acts" style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-ghost btn-sm" href="#/chapter/' + h.id + '">Chapter page</a></div></div>' +
-          '<div class="card"><h3>Your benefits</h3>' + (bs.length ? '<div class="list">' + bs.map(function (x) { var a = S.activated.filter(function (y) { return y.id === x.id; })[0]; return '<div class="it"><div class="nm"><b>' + esc(x.short) + '</b><span>' + esc(x.provider) + ' · ' + (a ? 'Requested ' + esc(a.when) : 'Not started') + '</span></div>' + (a ? '<span class="pill ver">Requested</span>' : x.detail ? '<a class="btn btn-primary btn-sm" href="#/benefit/' + x.id + '">Start</a>' : '<span class="pill plain onb">Details soon</span>') + '</div>'; }).join('') + '</div>' : '<p class="muted">Benefits go live when your chapter finishes onboarding.</p>') + '</div>' +
+          '<div class="card"><h3>Your benefits</h3>' + (bs.length ? '<div class="list">' + bs.map(function (x) { var a = S.activated.filter(function (y) { return y.id === x.id; })[0]; return '<div class="it">' + (x.logo ? '<img class="row-logo" src="' + esc(x.logo) + '" alt="' + esc(x.provider) + '">' : '') + '<div class="nm"><b>' + esc(x.short) + '</b><span>' + esc(x.provider) + ' · ' + (a ? 'Requested ' + esc(a.when) : 'Not started') + '</span></div>' + (a ? '<span class="pill ver">Requested</span>' : x.detail ? '<a class="btn btn-primary btn-sm" href="#/benefit/' + x.id + '">Start</a>' : '<span class="pill plain onb">Details soon</span>') + '</div>'; }).join('') + '</div>' : '<p class="muted">Benefits go live when your chapter finishes onboarding.</p>') + '</div>' +
           '<div class="card"><h3>Chapter events <span class="sample">sample</span></h3><div class="events">' + C.SAMPLE_EVENTS.map(function (e) { return '<div class="event"><div class="date"><small>' + e.m + '</small><b>' + e.d + '</b></div><div><b>' + esc(e.t) + '</b><div class="small muted">' + esc(e.w) + '</div></div></div>'; }).join('') + '</div></div>' +
         '</div>' +
         '<div style="display:flex;flex-direction:column;gap:20px">' +
