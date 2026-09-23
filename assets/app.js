@@ -743,17 +743,81 @@ VIEWS['for-chambers'] = {
     var secs = [
       ['Institutional identity', 'Legal and common name, year established, address, website, primary contact, and current executive leadership.'],
       ['Length of operation', 'Year established, whether operation has been continuous, and years serving the current community.'],
-      ['Member retention', 'Retention rate or a description of it, how retention is tracked, and why members renew or leave. Member count is collected for context only and is not a criterion.'],
+      ['Member retention', 'Retention rate or a description of it, how it is tracked, and why members renew or leave. Member count is collected for context only and is not a criterion.'],
       ['Community visibility', 'Media references, partnerships with local government and civic institutions, and two or three examples of community work in the past 24 months.'],
       ['Peer recognition', 'State association and U.S. Chamber membership, regional coalitions, and collaborations with other chambers.'],
       ['Leadership stability', 'Current leadership and year appointed, how many have held the role in the past decade, average tenure, and the governance structure.'],
       ['Acknowledgement interest', 'How the chamber heard about PowerChapter, why it is interested, and anything else about its standing worth knowing.']
     ];
-    return '<section class="page-head"><div class="wrap"><span class="eyebrow">For chambers</span><h1 style="margin-top:8px">Apply for Acknowledgement</h1><p class="lede">Acknowledged chambers offer every benefit in The Book to their members under their own name, at no cost to the chamber and no cost to members.</p></div></section>' +
-      '<section class="section-tight"><div class="wrap">' +
+    var benefits = C.BENEFITS.filter(function (b) { return !b.slot; });
+    return '' +
+    '<section class="hero" style="padding-block:52px 44px"><div class="wrap hero-grid">' +
+      '<div><span class="eyebrow">For Chambers of Commerce</span>' +
+      '<h1 style="margin-top:14px">Hand every member $3,199.88 a year in business services. Under your name. At no cost to anyone.</h1>' +
+      '<p class="lede" style="margin-top:18px">PowerChapter acknowledges chambers on reputation, then gives them The Book of Business Building Benefits to offer their members as a benefit of membership. Your chamber pays nothing, your members pay nothing, and your member list never leaves your chamber.</p>' +
+      '<div class="hero-actions" style="margin-top:24px"><a class="btn btn-primary" href="https://www.powerchapter.com/apply.html" target="_blank" rel="noopener">Apply for Acknowledgement</a><a class="btn btn-ghost" href="#/book">See what is in The Book</a></div>' +
+      '<p class="tiny muted" style="margin-top:14px">Figures are the providers\' published list prices. Acknowledgement is granted on standing, not on size, revenue, or member count.</p></div>' +
+      '<div class="mcard-stage"><div class="mcard" style="transform:none">' +
+        '<svg class="seal" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="#E2B64B" stroke-width="2"/><circle cx="50" cy="50" r="38" fill="none" stroke="#E2B64B" stroke-width="1" stroke-dasharray="2 3"/><path d="M50 22l18 10v18c0 9-7.6 15.5-18 19-10.4-3.5-18-10-18-19V32l18-10Z" fill="none" stroke="#E2B64B" stroke-width="2"/></svg>' +
+        '<div class="top"><span class="wm">Power<span>Chapter</span></span><span class="tier">Acknowledged</span></div>' +
+        '<div class="chap"><small>Your chamber</small><b>[Your Chamber of Commerce]</b></div>' +
+        '<div class="meta"><div><small>Member benefit value</small><span>$3,199.88 / yr</span></div><div style="text-align:right"><small>Cost to your chamber</small><span>$0.00</span></div></div>' +
+      '</div></div>' +
+    '</div></section>' +
+
+    '<section class="section-tight band-dark on-dark"><div class="wrap"><div class="stats">' +
+      '<div class="stat"><div class="v">$0</div><div class="k">Cost to your chamber</div></div>' +
+      '<div class="stat"><div class="v">$0</div><div class="k">Cost to each member</div></div>' +
+      '<div class="stat"><div class="v">' + benefits.length + '</div><div class="k">Services in The Book today, with more under review</div></div>' +
+      '<div class="stat"><div class="v">None</div><div class="k">Member records shared with PowerChapter</div></div>' +
+    '</div></div></section>' +
+
+    '<section class="section"><div class="wrap">' +
+      '<div class="section-head"><div><span class="eyebrow">What your members receive</span><h2 style="margin-top:8px">Services they would otherwise pay for</h2><p class="lede">Each one is vetted for longevity and reliability before it enters The Book, and each is offered to your members at no charge.</p></div></div>' +
+      '<div class="grid-2">' + benefits.map(benefitCard).join('') + '</div>' +
+    '</div></section>' +
+
+    '<section class="section band"><div class="wrap two-col">' +
+      '<div><span class="eyebrow">What your chamber receives</span><h2 style="margin-top:8px">A member benefit program you did not have to build</h2>' +
+      '<div class="list" style="margin-top:18px">' +
+        '<div class="it"><div class="nm"><b>Offering rights under your own brand</b><span>You present every benefit as your chamber\'s member benefit program. Members deal with you, not with us.</span></div></div>' +
+        '<div class="it"><div class="nm"><b>A chapter page and directory listing</b><span>Your chamber by name in the national directory, with your service area, events, announcements, and photos.</span></div></div>' +
+        '<div class="it"><div class="nm"><b>Member verification that runs itself</b><span>Share an invite code or upload a roster. Members verify themselves — no staff queue to work through.</span></div></div>' +
+        '<div class="it"><div class="nm"><b>An admin view with totals</b><span>Who has activated, how many, and which benefits are being used. Counts only: staff never see a member\'s financial information.</span></div></div>' +
+        '<div class="it"><div class="nm"><b>A renewal argument you can put in writing</b><span>A documented dollar figure members can weigh against their dues.</span></div></div>' +
+        '<div class="it"><div class="nm"><b>Every future benefit, automatically</b><span>When The Book grows, your members get the new service at no cost and no new application.</span></div></div>' +
+      '</div></div>' +
+      '<div class="card"><h3>What it costs you</h3><div class="table-wrap"><table class="data"><tbody>' +
+        '<tr><td>Fees to PowerChapter</td><td class="n">$0</td></tr>' +
+        '<tr><td>Fees to the providers</td><td class="n">$0</td></tr>' +
+        '<tr><td>Cost to your members</td><td class="n">$0</td></tr>' +
+        '<tr><td>Software to buy or run</td><td class="n">None</td></tr>' +
+        '<tr><td>Member data you hand over</td><td class="n">None</td></tr>' +
+        '<tr><td>Exclusivity or term commitment</td><td class="n">None</td></tr>' +
+        '<tr><td>Reporting required of your staff</td><td class="n">None</td></tr>' +
+      '</tbody></table></div>' +
+      '<p class="hint" style="margin-top:12px">What it does ask of you: tell your members the benefits exist, and keep operating with the standing that earned Acknowledgement.</p></div>' +
+    '</div></section>' +
+
+    '<section class="section"><div class="wrap">' +
+      '<div class="section-head"><div><span class="eyebrow">Why it works this way</span><h2 style="margin-top:8px">The providers are paying for trust, not for leads</h2></div></div>' +
+      '<div class="grid-3">' +
+        '<div class="card"><h3>They chose the chamber channel</h3><p class="muted small" style="margin-top:8px">A business owner ignores an advertisement and answers the chamber they have belonged to for fifteen years. That difference is worth more to a provider than a paid campaign, and it is why the service arrives free.</p></div>' +
+        '<div class="card"><h3>The standard protects the channel</h3><p class="muted small" style="margin-top:8px">Acknowledgement is granted on standing, not on size or payment. A provider knows its service is reaching members of institutions that have been vetted — which is the whole reason it agreed to the arrangement.</p></div>' +
+        '<div class="card"><h3>Nobody is extracting anything</h3><p class="muted small" style="margin-top:8px">No fees, no data harvesting, no upsell funnels, no enrollment friction built to capture leads. If a provider breaks that, it comes out of The Book and every chamber hears about it.</p></div>' +
+      '</div>' +
+    '</div></section>' +
+
+    '<section class="section band"><div class="wrap">' +
+      '<div class="section-head"><div><span class="eyebrow">Straight answers</span><h2 style="margin-top:8px">What chambers ask before they apply</h2></div></div>' +
+      '<div class="grid-2">' + C.CHAMBER_FAQ.map(function (f) { return '<div class="qa"><h4>' + esc(f.q) + '</h4><p class="muted small">' + esc(f.a) + '</p></div>'; }).join('') + '</div>' +
+    '</div></section>' +
+
+    '<section class="section"><div class="wrap">' +
+      '<div class="section-head"><div><span class="eyebrow">How Acknowledgement works</span><h2 style="margin-top:8px">Four steps to a decision, four more to launch</h2></div></div>' +
       '<div class="steps">' +
         step('01', 'Inquiry', 'Tell PowerChapter about your chamber. You receive an overview and the Acknowledgement Application.') +
-        step('02', 'Application', 'A formal application covering your chamber\'s history, community role, retention, and leadership. Submit it on your own timeline.') +
+        step('02', 'Application', 'A formal application covering your history, community role, retention, and leadership. Submit it on your own timeline.') +
         step('03', 'Review', 'A substantive review against the five proxies of the Acknowledgement Standard, documented with a written rationale.') +
         step('04', 'Decision', 'Approved, held for more detail, or declined. A decline is not permanent — chambers are welcome to apply again.') +
       '</div>' +
@@ -763,15 +827,20 @@ VIEWS['for-chambers'] = {
         step('07', 'Follow-up', 'Check-ins at 30 and 90 days, then periodic contact. No fees, no reporting requirements, no data-sharing obligations.') +
         step('08', 'Ongoing', 'Acknowledgement continues without reapplication, and may be reviewed if a chamber\'s standing materially changes.') +
       '</div>' +
-      '<div class="two-col" style="margin-top:32px">' +
+      '<div class="two-col" style="margin-top:28px">' +
         '<div class="card"><h3>What the application asks</h3><div class="list">' + secs.map(function (x) { return '<div class="it"><div class="nm"><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div></div>'; }).join('') + '</div>' +
         '<p class="hint" style="margin-top:12px">No timeline is promised at inquiry. Review is substantive, and every applicant receives the same process.</p></div>' +
         '<div style="display:flex;flex-direction:column;gap:20px">' +
-        '<div class="card"><h3>What your chamber commits to</h3><ul class="checklist"><li>Offer the benefits under your own name, at no charge to members</li><li>Keep your member relationships and member records with your chamber</li><li>Represent the program accurately, and never sell or gate access to a benefit offered at no cost</li><li>Continue operating with the standing that earned Acknowledgement</li></ul></div>' +
-        '<div class="card"><h3>What PowerChapter commits to</h3><ul class="checklist"><li>Curate The Book and manage the provider relationships</li><li>Apply the standard consistently and document every decision</li><li>Charge your chamber and your members nothing</li><li>Hold no member financial or credit information, ever</li></ul>' +
-        '<a class="btn btn-primary" href="https://www.powerchapter.com/apply.html" target="_blank" rel="noopener" style="margin-top:16px">Start the application</a></div>' +
+          '<div class="card"><h3>What your chamber commits to</h3><ul class="checklist"><li>Offer the benefits under your own name, at no charge to members</li><li>Keep your member relationships and member records with your chamber</li><li>Represent the program accurately, and never sell or gate access to a benefit offered at no cost</li><li>Continue operating with the standing that earned Acknowledgement</li></ul></div>' +
+          '<div class="card"><h3>What PowerChapter commits to</h3><ul class="checklist"><li>Curate The Book and manage the provider relationships</li><li>Apply the standard consistently and document every decision</li><li>Charge your chamber and your members nothing</li><li>Hold no member financial or credit information, ever</li></ul></div>' +
         '</div>' +
-      '</div></div></section>';
+      '</div>' +
+    '</div></section>' +
+
+    '<section class="section band-dark on-dark"><div class="wrap" style="display:flex;gap:28px;align-items:center;justify-content:space-between;flex-wrap:wrap">' +
+      '<div style="max-width:60ch"><span class="eyebrow">Next step</span><h2 style="margin-top:8px">Reputation is the gate. Yours may already qualify.</h2><p class="lede" style="margin-top:10px">If your chamber has served its community with integrity, kept its members, and earned the respect of its peers, it meets the standard. The application takes one sitting.</p></div>' +
+      '<div class="hero-actions" style="margin:0"><a class="btn btn-gold" href="https://www.powerchapter.com/apply.html" target="_blank" rel="noopener">Apply for Acknowledgement</a><a class="btn btn-ghost" href="#/standard">Read the Standard</a></div>' +
+    '</div></section>';
   }
 };
 VIEWS.privacy = {

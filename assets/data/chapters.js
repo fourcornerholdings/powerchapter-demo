@@ -94,6 +94,26 @@ window.PC_CONFIG = {
       a:"The providers have chosen the chamber channel for distribution. They see acknowledged chambers as trusted institutions, and they would rather reach members through that trust than through paid acquisition. Your chamber's reputation is the reason this is possible." }
   ],
 
+  // Questions chambers ask, adapted from the outreach objection handling.
+  CHAMBER_FAQ: [
+    { q:"What is the catch?",
+      a:"There isn't one, and it is the right question to ask. PowerChapter is a nonprofit that generates no revenue and whose operators take no income from it. The providers have agreed to make their services available through acknowledged chambers at no charge because they would rather reach business owners through a trusted institution than through paid advertising. Your chamber pays nothing and your members pay nothing." },
+    { q:"How does PowerChapter make money?",
+      a:"It does not. There is no revenue share, no placement fee, no subscription, and no paid tier. Operating costs are covered by the providers under their agreements. The structure is deliberately clean so the credential is never in question." },
+    { q:"Are you collecting data on our members?",
+      a:"No. Your membership list stays with your chamber — PowerChapter never receives it. When a member activates, PowerChapter holds that member's name, email, business name, chapter, and consent record, and nothing else. What a member does inside a provider's platform stays with that provider." },
+    { q:"Does our chamber get renamed or rebranded?",
+      a:"No. Your chamber keeps its name, brand and identity. Members experience the benefits as your chamber's member benefit program. PowerChapter appears only where Acknowledgement itself is being described." },
+    { q:"We are a small chamber. Does size count against us?",
+      a:"Not at all. Size is explicitly excluded from the standard. A 150-member chamber with 30 years of standing is exactly the kind of institution this exists to acknowledge — and it will be acknowledged ahead of a 3,000-member chamber that formed two years ago." },
+    { q:"What if a provider starts charging our members later?",
+      a:"Tell PowerChapter. A provider that charges members, collects data without consent, or restricts access is removed from The Book, and every acknowledged chamber is notified." },
+    { q:"How much work is this for our staff?",
+      a:"Very little. You share an invite code or a roster, decide when to mention the benefits in the channels you already use, and answer the occasional membership question. There are no fees to collect, no reporting requirements, and no systems for your staff to learn." },
+    { q:"What does it cost to leave?",
+      a:"Nothing. There is no contract, no exclusivity, and no term. A chamber that wants out tells PowerChapter, and is removed from the directory." }
+  ],
+
   // Sample chapter content (events, announcements, leadership) — replaced by each chamber.
   SAMPLE_EVENTS: [
     { m:"OCT", d:"08", t:"Member breakfast: local lending outlook", w:"Chamber boardroom · 7:30 AM" },
