@@ -756,7 +756,7 @@ VIEWS['for-chambers'] = {
     return '' +
     '<section class="hero" style="padding-block:52px 44px"><div class="wrap hero-grid">' +
       '<div><span class="eyebrow">For Chambers of Commerce</span>' +
-      '<h1 style="margin-top:14px">Hand every member $3,199.88 a year in business services. Under your name. At no cost to anyone.</h1>' +
+      '<h1 style="margin-top:14px">Hand every member ' + esc(C.bookValueTotal) + ' a year in business services. Under your name. At no cost to anyone.</h1>' +
       '<p class="lede" style="margin-top:18px">PowerChapter acknowledges chambers on reputation, then gives them The Book of Business Building Benefits to offer their members as a benefit of membership. Your chamber pays nothing, your members pay nothing, and your member list never leaves your chamber.</p>' +
       '<div class="hero-actions" style="margin-top:24px"><a class="btn btn-primary" href="https://www.powerchapter.com/apply.html" target="_blank" rel="noopener">Apply for Acknowledgement</a><a class="btn btn-ghost" href="#/book">See what is in The Book</a></div>' +
       '<p class="tiny muted" style="margin-top:14px">Figures are the providers\' published list prices. Acknowledgement is granted on standing, not on size, revenue, or member count.</p></div>' +
@@ -764,7 +764,7 @@ VIEWS['for-chambers'] = {
         '<svg class="seal" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="#E2B64B" stroke-width="2"/><circle cx="50" cy="50" r="38" fill="none" stroke="#E2B64B" stroke-width="1" stroke-dasharray="2 3"/><path d="M50 22l18 10v18c0 9-7.6 15.5-18 19-10.4-3.5-18-10-18-19V32l18-10Z" fill="none" stroke="#E2B64B" stroke-width="2"/></svg>' +
         '<div class="top"><span class="wm">Power<span>Chapter</span></span><span class="tier">Acknowledged</span></div>' +
         '<div class="chap"><small>Your chamber</small><b>[Your Chamber of Commerce]</b></div>' +
-        '<div class="meta"><div><small>Member benefit value</small><span>$3,199.88 / yr</span></div><div style="text-align:right"><small>Cost to your chamber</small><span>$0.00</span></div></div>' +
+        '<div class="meta"><div><small>Member benefit value</small><span>' + esc(C.bookValueTotal) + ' / yr</span></div><div style="text-align:right"><small>Cost to your chamber</small><span>$0.00</span></div></div>' +
       '</div></div>' +
     '</div></section>' +
 

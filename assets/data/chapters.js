@@ -15,6 +15,9 @@ window.PC_CONFIG = {
   // no chapter near the visitor instead of assigning a distant one.
   nearRadiusMiles: 150,
 
+  // Sum of the listed values above, shown on the chambers page. Update it when a listed value changes.
+  bookValueTotal: "$3,696.88",
+
   CHAPTERS: [
     { id:"tampa-bay", name:"Sample Chapter — Tampa Bay", city:"Tampa", st:"FL", lat:27.9506, lng:-82.4572,
       status:"live", counties:["12057","12103","12101"], inviteCode:"TPA-DEMO",
@@ -44,7 +47,7 @@ window.PC_CONFIG = {
 
   BENEFITS: [
     { id:"zenhur", provider:"Zenhur", title:"All Capital Access Dashboard", short:"All Capital Access Dashboard",
-      cat:"Capital access", listedValue:"$2,000 per year per user", live:true, detail:true,
+      cat:"Capital access", listedValue:"$2,497 per year per user", live:true, detail:true,
       intakeUrl:"https://admin.zenhur.com", logo:"assets/photos/zenhur-logo.png",
       blurb:"A capital access platform that gives businesses visibility into funding sources, capital options, and financial access tools.",
       whatItIs:"Zenhur's All Capital Access Dashboard is a capital access platform that provides businesses with visibility into funding sources, capital options, and financial access tools. The dashboard helps you identify, evaluate, and pursue funding sources that may be relevant to your business.",
