@@ -454,3 +454,9 @@ textarea.input{min-height:90px;resize:vertical}
 .logo-plate.pending small{font-family:var(--f-mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase}
 .bcard .logo-plate{border-radius:var(--radius) var(--radius) 0 0}
 .row-logo{height:22px;width:auto;max-width:120px;object-fit:contain;flex:none;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+
+/* ---------- Listed chambers ---------- */
+.c-lch{fill:#7C93B5;fill-opacity:.85;stroke:var(--panel);cursor:pointer}
+.c-lch:hover{fill:#B9CCE6}
+.c-lch.sel{fill:#FFD774;stroke:#0E1D33}
+.legend .sw .lch{width:8px;height:8px;border-radius:50%;background:#7C93B5}

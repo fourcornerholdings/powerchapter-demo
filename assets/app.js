@@ -41,6 +41,30 @@ function chStats(c) {
 function statusPill(c) { return c.status === 'live' ? '<span class="pill live">Acknowledged · Benefits live</span>' : '<span class="pill onb">Acknowledged · Onboarding</span>'; }
 function liveBenefits(c) { return c.status === 'live' ? C.BENEFITS.filter(function (b) { return !b.slot && b.live && benefitOn(c.id, b.id); }) : []; }
 
+/* ---------------- listed chambers (IRS Exempt Organizations Business Master File) ---------------- */
+var CHAMBERS = null, CHAM_ST = {}, CHAM_N = 0;
+function ackKey(nm, st) { return norm(nm).replace(/\b(inc|incorporated|the|of|commerce|chamber)\b/g, '').replace(/\s+/g, ' ').trim() + '|' + st; }
+var ACK_KEYS = {}, ACK_EIN = {};
+C.CHAPTERS.forEach(function (c) { ACK_KEYS[ackKey(c.chamberName || c.name, c.st)] = 1; if (c.ein) ACK_EIN[c.ein] = 1; });
+function chambers() {
+  if (CHAMBERS) return CHAMBERS;
+  if (!window.CHAMBERS_ALL) return [];
+  CHAMBERS = [];
+  window.CHAMBERS_ALL.split('\n').forEach(function (r, i) {
+    var p = r.split('|'); if (p.length < 7) return;
+    var c = { i: i, nm: p[0], city: p[1], st: p[2], zip: p[3], lat: +p[4], lng: +p[5], ein: p[6] };
+    if (ACK_EIN[c.ein] || ACK_KEYS[ackKey(c.nm, c.st)]) return;
+    CHAMBERS.push(c); (CHAM_ST[c.st] = CHAM_ST[c.st] || []).push(c);
+  });
+  CHAM_N = CHAMBERS.length;
+  return CHAMBERS;
+}
+function chamberAt(i) { var all = chambers(); for (var x = 0; x < all.length; x++) if (all[x].i === i) return all[x]; return null; }
+function chamberCount(st) { chambers(); return (CHAM_ST[st] || []).length; }
+function nearestChambers(loc, n) {
+  return chambers().map(function (c) { return { c: c, d: miles(loc, c) }; }).sort(function (x, y) { return x.d - y.d; }).slice(0, n || 5);
+}
+
 /* ---------------- per-viewer state (browser only) ---------------- */
 var KEY = 'pc-proto-v1';
 var S = { home: null, homeStatus: null, browse: null, browseSrc: null, loc: null, user: null, activated: [], ann: {}, toggles: {}, codes: {}, visited: false };
@@ -132,6 +156,7 @@ function suggestions(q) {
   }
   C.CHAPTERS.forEach(function (c) { if (norm(c.name + ' ' + c.city + ' ' + STN[c.st] + ' ' + c.st).indexOf(n) > -1) out.push({ k: 'Chapter', t: c.name, s: c.city + ', ' + c.st, go: { type: 'chapter', id: c.id } }); });
   Object.keys(STN).forEach(function (s) { if (norm(STN[s]).indexOf(n) === 0 || n === s.toLowerCase()) out.push({ k: 'State', t: STN[s], s: C.CHAPTERS.filter(function (c) { return c.st === s; }).length + ' chapter(s)', go: { type: 'state', st: s } }); });
+  if (n.length >= 3) { var cc = 0; chambers().some(function (c) { if (norm(c.nm).indexOf(n) > -1) { out.push({ k: 'Chamber', t: c.nm, s: c.city + ', ' + c.st, go: { type: 'chamber', i: c.i } }); cc++; } return cc >= 5; }); }
   var cn = 0; Object.keys(DATA).some(function (f) { var v = DATA[f]; if (norm(v[0]).indexOf(n.replace(/ county$/, '')) === 0) { out.push({ k: 'County', t: v[0] + ' County, ' + v[1], s: fmt(v[2]) + ' businesses', go: { type: 'county', fips: f } }); cn++; } return cn >= 4; });
   if (zipIndex() && n.length >= 3) { var k = 0; Object.keys(CITY).some(function (name) { if (norm(name).indexOf(n) === 0) { var cc = CITY[name]; out.push({ k: 'City', t: name, go: { type: 'loc', lat: cc[0] / cc[2], lng: cc[1] / cc[2], label: name } }); k++; } return k >= 4; }); }
   return out.slice(0, 9);
@@ -207,6 +232,7 @@ function applyTarget(go, quiet) {
   if (!go) return {};
   if (go.type === 'chapter') { return { sel: go.id, focus: CH[go.id].st }; }
   if (go.type === 'state') { return { focus: go.st, sel: '' }; }
+  if (go.type === 'chamber') { var lc = chamberAt(go.i); return lc ? { focus: lc.st, sel: '', lch: go.i } : {}; }
   if (go.type === 'county') {
     var v = DATA[go.fips], sid = SERVED[go.fips];
     return { focus: v[1], sel: sid || '', county: go.fips };
@@ -221,7 +247,7 @@ function applyTarget(go, quiet) {
 }
 
 /* ---------------- router ---------------- */
-var PENDING = null, FINDER = { focus: '', sel: '', metric: 'e', county: '' };
+var PENDING = null, FINDER = { focus: '', sel: '', metric: 'e', county: '', lch: null, lchAll: false };
 function route() {
   var h = location.hash.replace(/^#\/?/, ''), q = '';
   var qi = h.indexOf('?'); if (qi > -1) { q = h.slice(qi + 1); h = h.slice(0, qi); }
@@ -277,11 +303,11 @@ VIEWS.home = {
     '</div></section>' +
 
     '<section class="section band-dark on-dark"><div class="wrap">' +
-      '<div class="section-head"><div><span class="eyebrow">The network</span><h2 style="margin-top:8px">Chapters are local. The standard is national.</h2><p class="lede">Each chapter serves the counties around it. The business figures below are real county counts for the areas our sample chapters serve.</p></div><a class="btn btn-gold" href="#/chapters">Explore the chapter map</a></div>' +
+      '<div class="section-head"><div><span class="eyebrow">The network</span><h2 style="margin-top:8px">Chapters are local. The standard is national.</h2><p class="lede">Every chamber of commerce in the country is on the map. Acknowledged chapters carry benefits; the rest are listed until their chamber applies. The business figures are real county counts for the areas our sample chapters serve.</p></div><a class="btn btn-gold" href="#/chapters">Explore the chapter map</a></div>' +
       '<div class="stats">' +
         '<div class="stat"><div class="v">' + liveCount + '</div><div class="k">Chapters with benefits live <span class="sample">sample</span></div></div>' +
         '<div class="stat"><div class="v">' + (C.CHAPTERS.length - liveCount) + '</div><div class="k">Chapters onboarding <span class="sample">sample</span></div></div>' +
-        '<div class="stat"><div class="v">' + Object.keys(states).length + '</div><div class="k">States represented</div></div>' +
+        '<div class="stat"><div class="v">' + fmt(CHAM_N || (chambers(), CHAM_N)) + '</div><div class="k">Chambers mapped nationwide (IRS records)</div></div>' +
         '<div class="stat"><div class="v">' + fmt(biz) + '</div><div class="k">Businesses in chapter service areas (QCEW 2024)</div></div>' +
       '</div></div></section>' +
 
@@ -304,7 +330,8 @@ function nearestStrip() {
   if (!S.loc && !c) return '<div class="nearest"><div class="ico">' + ICON.pin + '</div><div class="txt"><b>No chapter selected yet.</b><div class="small muted">Share your location or search above and we will suggest the nearest acknowledged chamber.</div></div><div class="acts"><button class="btn btn-ghost btn-sm" data-act="drawer" type="button">Choose a chapter</button></div></div>';
   if (!c && S.loc) {
     var n = nearestList(S.loc)[0];
-    return '<div class="nearest"><div class="ico">' + ICON.pin + '</div><div class="txt"><b>No acknowledged chapter within ' + C.nearRadiusMiles + ' miles of ' + esc(S.loc.label) + '.</b><div class="small muted">The closest is ' + esc(n.c.name) + ', ' + fmt(n.d) + ' miles away. If your chamber is not listed yet, ask it to apply.</div></div><div class="acts"><a class="btn btn-primary btn-sm" href="#/for-chambers">Ask your chamber to join</a><button class="btn btn-ghost btn-sm" data-act="drawer" type="button">Choose anyway</button></div></div>';
+    var lc = nearestChambers(S.loc, 1)[0];
+    return '<div class="nearest"><div class="ico">' + ICON.pin + '</div><div class="txt"><b>No acknowledged chapter within ' + C.nearRadiusMiles + ' miles of ' + esc(S.loc.label) + '.</b><div class="small muted">' + (lc ? 'Your nearest chamber, ' + esc(lc.c.nm) + ' (' + fmt(lc.d) + ' mi), is listed but has not applied. Members can ask it to.' : 'The closest chapter is ' + esc(n.c.name) + ', ' + fmt(n.d) + ' miles away.') + '</div></div><div class="acts">' + (lc ? '<a class="btn btn-primary btn-sm" href="#/chapters">Find your chamber</a>' : '') + '<button class="btn btn-ghost btn-sm" data-act="drawer" type="button">Choose a chapter</button></div></div>';
   }
   var why = S.home === c.id ? 'Your membership chapter' : (S.browseSrc === 'ip' ? 'Suggested from your approximate location' + (S.loc ? ' (' + esc(S.loc.label) + ')' : '') : S.browseSrc === 'geo' ? 'Nearest to your current location' : S.browseSrc === 'search' ? 'Nearest to your search' : 'Your chosen chapter');
   return '<div class="nearest"><div class="ico">' + ICON.pin + '</div><div class="txt"><span class="small muted">' + why + '</span><div><b>' + esc(c.name) + '</b> · ' + esc(c.city) + ', ' + c.st + (distLabel(c) ? ' · <span class="num">' + distLabel(c) + '</span>' : '') + '</div></div>' +
@@ -328,7 +355,7 @@ var STEPS = ['#1c3556', '#24487a', '#2f5f9f', '#3f78bf', '#5f95d4', '#8db6e6', '
 VIEWS.chapters = {
   html: function () {
     return '<section class="page-head"><div class="wrap"><span class="eyebrow">Find a chapter</span><h1 style="margin-top:8px">Find your chamber and see the market it serves</h1>' +
-      '<p class="lede">Search by ZIP, city, county, or chamber name, or pick a state. Select a chapter to see its profile, the counties it serves, and how many businesses operate there.</p></div></section>' +
+      '<p class="lede">Every chamber of commerce in the country is on this map. Search by ZIP, city, county, or chamber name. Acknowledged chapters carry benefits; the rest are listed for reference until their chamber applies.</p></div></section>' +
       '<section class="section-tight"><div class="wrap">' +
       '<div class="finder-controls">' + searchBox('finderQ', 'ZIP, city, county, or chamber name') +
         '<select class="input" id="finderState" aria-label="State"><option value="">All states</option>' + Object.keys(STN).sort(function (a, b) { return STN[a].localeCompare(STN[b]); }).map(function (s) { return '<option value="' + s + '">' + STN[s] + '</option>'; }).join('') + '</select>' +
@@ -340,12 +367,12 @@ VIEWS.chapters = {
         '<div class="legend"><span id="lgLo" class="num"></span><span class="ramp" id="lgRamp"></span><span id="lgHi" class="num"></span><span class="sw"><span class="o"></span>Chapter service area</span><span class="sw"><span class="dot"></span>Benefits live</span><span class="sw"><span class="dot h"></span>Onboarding</span>' + (S.loc ? '<span class="sw"><span class="you"></span>You</span>' : '') + '</div>' : '<p style="padding:20px">The map library did not load. The chapter list still works.</p>') + '</div>' +
         '<div class="panel side" id="finderSide" aria-live="polite"></div>' +
       '</div>' +
-      '<p class="source-note">Business counts are annual-average employer establishments from the U.S. Bureau of Labor Statistics (QCEW, 2024). Chapter names and chamber profiles are samples for this prototype.</p>' +
+      '<p class="source-note">Business counts: U.S. Bureau of Labor Statistics, QCEW annual averages, 2024. Chamber list: IRS Exempt Organizations Business Master File, September 8, 2026 release — a listing is not an acknowledgement, and details are unverified until a chamber confirms them. Chapter names and chamber profiles are samples for this prototype.</p>' +
       '</div></section>';
   },
   mount: function (r) {
     var F = FINDER;
-    if (PENDING) { var t = applyTarget(PENDING); PENDING = null; F.focus = t.focus || ''; F.sel = t.sel || ''; F.county = t.county || ''; }
+    if (PENDING) { var t = applyTarget(PENDING); PENDING = null; F.focus = t.focus || ''; F.sel = t.sel || ''; F.county = t.county || ''; F.lch = t.lch == null ? null : t.lch; }
     else if (r.q.get('chapter') && CH[r.q.get('chapter')]) { F.sel = r.q.get('chapter'); F.focus = CH[F.sel].st; }
     else if (!F.focus && !F.sel && current()) { F.sel = current().id; F.focus = current().st; }
     var map = hasMap ? finderMap($('#finderMap')) : null;
@@ -357,20 +384,26 @@ VIEWS.chapters = {
     }
     function renderSide() {
       var el = $('#finderSide');
-      el.innerHTML = F.sel ? chapterPanel(CH[F.sel]) : F.focus ? statePanel(F.focus) : networkPanel();
-      $$('[data-ch]', el).forEach(function (b) { b.addEventListener('click', function () { F.sel = b.dataset.ch; F.focus = CH[F.sel].st; update(true); }); });
-      $$('[data-st]', el).forEach(function (b) { b.addEventListener('click', function () { F.sel = ''; F.focus = b.dataset.st; update(true); }); });
+      var lc = F.lch == null ? null : chamberAt(F.lch);
+      el.innerHTML = lc ? listedPanel(lc) : F.sel ? chapterPanel(CH[F.sel]) : F.focus ? statePanel(F.focus) : networkPanel();
+      $$('[data-lch]', el).forEach(function (b) { b.addEventListener('click', function () { F.lch = +b.dataset.lch; F.sel = ''; F.focus = chamberAt(F.lch).st; update(true); }); });
+      $$('[data-lchall]', el).forEach(function (b) { b.addEventListener('click', function () { F.lchAll = true; renderSide(); }); });
+      $$('[data-apply]', el).forEach(function (b) { b.addEventListener('click', function () { askToApply(chamberAt(+b.dataset.apply)); }); });
+      $$('[data-claim]', el).forEach(function (b) { b.addEventListener('click', function () { claimListing(chamberAt(+b.dataset.claim)); }); });
+      $$('[data-ch]', el).forEach(function (b) { b.addEventListener('click', function () { F.sel = b.dataset.ch; F.lch = null; F.focus = CH[F.sel].st; update(true); }); });
+      $$('[data-st]', el).forEach(function (b) { b.addEventListener('click', function () { F.sel = ''; F.lch = null; F.lchAll = false; F.focus = b.dataset.st; update(true); }); });
       $$('[data-mine]', el).forEach(function (b) { b.addEventListener('click', function () { setBrowse(b.dataset.mine, 'choice'); toast('Chapter set: ' + CH[b.dataset.mine].name.replace('Sample Chapter — ', '')); renderSide(); }); });
-      $$('[data-back]', el).forEach(function (b) { b.addEventListener('click', function () { F.sel = ''; update(false); }); });
+      $$('[data-back]', el).forEach(function (b) { b.addEventListener('click', function () { F.sel = ''; F.lch = null; update(false); }); });
       $$('[data-hover]', el).forEach(function (b) { b.addEventListener('mouseenter', function () { if (map) map.highlight(b.dataset.hover); }); b.addEventListener('mouseleave', function () { if (map) map.highlight(null); }); });
     }
-    F.onSelect = function (id) { F.sel = id; F.focus = CH[id].st; update(true); };
-    F.onState = function (st, fips) { var sid = fips && SERVED[fips]; if (st !== F.focus || sid) { F.focus = st; F.sel = sid || ''; update(true); } };
-    attachSearch($('#finderQ'), $('#finderQBox'), function (g) { var t = applyTarget(g); F.focus = t.focus || ''; F.sel = t.sel || ''; F.county = t.county || ''; render(); });
-    $('#finderState').addEventListener('change', function (e) { F.focus = e.target.value; F.sel = ''; update(true); });
+    F.onSelect = function (id) { F.sel = id; F.lch = null; F.focus = CH[id].st; update(true); };
+    F.onListed = function (i) { F.lch = i; F.sel = ''; F.focus = chamberAt(i).st; update(false); };
+    F.onState = function (st, fips) { var sid = fips && SERVED[fips]; if (st !== F.focus || sid) { F.focus = st; F.sel = sid || ''; F.lch = null; F.lchAll = false; update(true); } };
+    attachSearch($('#finderQ'), $('#finderQBox'), function (g) { var t = applyTarget(g); F.focus = t.focus || ''; F.sel = t.sel || ''; F.county = t.county || ''; F.lch = t.lch == null ? null : t.lch; render(); });
+    $('#finderState').addEventListener('change', function (e) { F.focus = e.target.value; F.sel = ''; F.lch = null; F.lchAll = false; update(true); });
     $$('.seg button').forEach(function (b) { b.addEventListener('click', function () { F.metric = b.dataset.m; update(false); }); });
     $('#finderGeo').addEventListener('click', function () { useMyLocation(function () { var n = nearestList(S.loc)[0]; if (n.d <= C.nearRadiusMiles) { F.sel = n.c.id; F.focus = n.c.st; } else { F.sel = ''; F.focus = stateOfLoc(S.loc) || ''; } render(); }); });
-    if ($('#mapReset')) $('#mapReset').addEventListener('click', function () { F.focus = ''; F.sel = ''; update(true); });
+    if ($('#mapReset')) $('#mapReset').addEventListener('click', function () { F.focus = ''; F.sel = ''; F.lch = null; F.lchAll = false; update(true); });
     update(true);
   }
 };
@@ -379,7 +412,7 @@ function finderMap(svgEl) {
   var F = FINDER, svg = d3.select(svgEl), g = svg.append('g'), k = 1, th = [];
   var cg = g.append('g').selectAll('path').data(COUNTIES).join('path').attr('class', 'c-county').attr('d', path);
   g.append('path').datum(STATE_MESH).attr('class', 'c-state').attr('d', path).attr('vector-effect', 'non-scaling-stroke');
-  var serveG = g.append('g'), youG = g.append('g'), pinG = g.append('g');
+  var serveG = g.append('g'), lchG = g.append('g'), youG = g.append('g'), pinG = g.append('g');
   var outlines = C.CHAPTERS.map(function (c) { return { id: c.id, geo: topojson.merge(M.topo, c.counties.map(function (f) { return GEOMS[f]; }).filter(Boolean)) }; });
   var so = serveG.selectAll('path').data(outlines).join('path').attr('class', 'c-serve').attr('d', function (d) { return path(d.geo); }).attr('vector-effect', 'non-scaling-stroke');
   var pins = pinG.selectAll('g').data(C.CHAPTERS.filter(function (c) { return proj([c.lng, c.lat]); })).join('g')
@@ -407,6 +440,21 @@ function finderMap(svgEl) {
     th = [0.35, 0.6, 0.8, 0.9, 0.96, 0.99].map(function (q) { return d3.quantile(vals, q); });
   }
   function color(v) { if (!v) return EMPTY; var i = 0; while (i < th.length && v >= th[i]) i++; return STEPS[i]; }
+  function drawListed() {
+    chambers();
+    var arr = F.focus ? (CHAM_ST[F.focus] || []).filter(function (c) { return proj([c.lng, c.lat]); }) : [];
+    var sel = lchG.selectAll('circle').data(arr, function (d) { return d.i; });
+    sel.exit().remove();
+    sel.enter().append('circle').attr('class', 'c-lch')
+      .on('click', function (ev, d) { ev.stopPropagation(); F.onListed(d.i); })
+      .on('mousemove', function (ev, d) { showTip(ev, '<b>' + esc(d.nm) + '</b><div><span>City</span><span>' + esc(d.city) + ', ' + d.st + '</span></div><span class="srv" style="color:#9DB2D3">Listed · not acknowledged</span>'); })
+      .on('mouseleave', hideTip)
+      .merge(sel)
+      .attr('cx', function (d) { return proj([d.lng, d.lat])[0]; })
+      .attr('cy', function (d) { return proj([d.lng, d.lat])[1]; })
+      .attr('r', 3.2 / k).attr('stroke-width', 1 / k)
+      .classed('sel', function (d) { return d.i === F.lch; });
+  }
   function sizePins() {
     pins.attr('transform', function (c) { var p = proj([c.lng, c.lat]); return 'translate(' + p[0] + ',' + p[1] + ')'; });
     pins.select('.dot').attr('r', 5.5 / k).attr('stroke-width', 1.6 / k);
@@ -420,7 +468,7 @@ function finderMap(svgEl) {
       .classed('dim', function (f) { return F.focus && F2S[f.id.slice(0, 2)] !== F.focus; });
     so.classed('sel', function (d) { return d.id === F.sel; });
     pins.classed('sel', function (c) { return c.id === F.sel; }).style('opacity', function (c) { return F.focus && c.st !== F.focus ? 0.35 : 1; });
-    sizePins();
+    sizePins(); drawListed();
     $('#lgRamp').innerHTML = STEPS.map(function (c) { return '<i style="background:' + c + '"></i>'; }).join('');
     $('#lgLo').textContent = '<' + fmt(th[0]); $('#lgHi').textContent = fmt(th[th.length - 1]) + '+';
   }
@@ -428,11 +476,11 @@ function finderMap(svgEl) {
     var b;
     if (F.sel) { b = [[Infinity, Infinity], [-Infinity, -Infinity]]; var ext = BYSTATE[CH[F.sel].st] || []; ext.forEach(function (f) { var bb = BOUNDS[f.id]; b[0][0] = Math.min(b[0][0], bb[0][0]); b[0][1] = Math.min(b[0][1], bb[0][1]); b[1][0] = Math.max(b[1][0], bb[1][0]); b[1][1] = Math.max(b[1][1], bb[1][1]); }); }
     else if (s && BYSTATE[s]) { b = [[Infinity, Infinity], [-Infinity, -Infinity]]; BYSTATE[s].forEach(function (f) { var bb = BOUNDS[f.id]; b[0][0] = Math.min(b[0][0], bb[0][0]); b[0][1] = Math.min(b[0][1], bb[0][1]); b[1][0] = Math.max(b[1][0], bb[1][0]); b[1][1] = Math.max(b[1][1], bb[1][1]); }); }
-    if (!b) { k = 1; g.transition().duration(500).attr('transform', 'translate(0,0) scale(1)'); sizePins(); return; }
+    if (!b) { k = 1; g.transition().duration(500).attr('transform', 'translate(0,0) scale(1)'); sizePins(); drawListed(); return; }
     var dx = b[1][0] - b[0][0], dy = b[1][1] - b[0][1], cx = (b[0][0] + b[1][0]) / 2, cy = (b[0][1] + b[1][1]) / 2;
     k = Math.min(9, 0.86 / Math.max(dx / 975, dy / 610));
     g.transition().duration(500).attr('transform', 'translate(' + (975 / 2 - k * cx) + ',' + (610 / 2 - k * cy) + ') scale(' + k + ')');
-    sizePins();
+    sizePins(); drawListed();
   }
   function highlight(fips) { cg.classed('dim', function (f) { return fips ? f.id !== fips : (F.focus && F2S[f.id.slice(0, 2)] !== F.focus); }); }
   return { paint: paint, zoomTo: zoomTo, highlight: highlight };
@@ -450,6 +498,38 @@ function chapterPanel(c) {
     '<div class="acts">' + (isMine ? '<span class="pill plain ver">This is your chapter</span>' : '<button class="btn btn-gold" type="button" data-mine="' + c.id + '">Make this my chapter</button>') + '<a class="btn btn-ghost" href="#/chapter/' + c.id + '">Chapter page</a><button class="btn-link" type="button" data-back style="color:var(--accent)">All of ' + esc(STN[c.st]) + '</button></div>' +
     '<p class="note">Choosing a chapter personalizes what you see. Benefits unlock after your chamber verifies your membership.</p>';
 }
+function listedRow(c) {
+  return '<button class="row btnrow" type="button" data-lch="' + c.i + '"><span class="rank h" style="border-color:var(--panel-mute);color:var(--panel-mute)">' + ICON.pin.replace('width="20" height="20"', 'width="12" height="12"') + '</span>' +
+    '<span class="nm"><b style="font-weight:550">' + esc(c.nm) + '</b><span>' + esc(c.city) + ', ' + c.st + (S.loc ? ' · ' + fmt(miles(S.loc, c)) + ' mi' : '') + '</span></span><span class="rt">Listed</span></button>';
+}
+function listedPanel(c) {
+  var near = nearestList({ lat: c.lat, lng: c.lng })[0];
+  return '<div class="lbl"><span>Chamber</span><span class="sample">Listed · not acknowledged</span></div>' +
+    '<div><h3>' + esc(c.nm) + '</h3><div class="sub" style="margin-top:4px">' + esc(c.city) + ', ' + esc(STN[c.st] || c.st) + ' ' + esc(c.zip) + (distLabel(c) ? ' · <span class="num">' + distLabel(c) + '</span>' : '') + '</div>' +
+    '<div style="margin-top:10px"><span class="pill plain onb">Not acknowledged — no benefits available</span></div></div>' +
+    '<div class="empty"><b>This chamber has not applied for Acknowledgement.</b><br>Its members cannot use The Book yet. Chambers are acknowledged on standing, not on size — if you are a member here, asking is the fastest way to start.' +
+    '<div class="acts" style="margin-top:12px"><button class="btn btn-gold btn-sm" type="button" data-apply="' + c.i + '">Ask this chamber to apply</button></div></div>' +
+    (near ? '<div class="lbl"><span>Nearest acknowledged chapter</span><span>' + fmt(near.d) + ' mi away</span></div>' +
+      '<button class="row btnrow" type="button" data-ch="' + near.c.id + '"><span class="rank">' + ICON.pin.replace('width="20" height="20"', 'width="14" height="14"') + '</span><span class="nm"><b>' + esc(near.c.name) + '</b><span>' + esc(near.c.city) + ', ' + near.c.st + ' · ' + (near.c.status === 'live' ? 'benefits live' : 'onboarding') + '</span></span><span class="rt">View</span></button>' : '') +
+    '<div class="acts"><button class="btn-link" type="button" data-st="' + c.st + '" style="color:var(--accent)">All of ' + esc(STN[c.st] || c.st) + '</button><button class="btn-link" type="button" data-claim="' + c.i + '" style="color:var(--panel-mute)">Claim or correct this listing</button></div>' +
+    '<p class="note">Source: IRS Exempt Organizations Business Master File, September 8, 2026. Name and address are as registered with the IRS and are unverified.</p>';
+}
+function askToApply(c) {
+  if (!c) return;
+  modal('Ask ' + c.nm + ' to apply', '<p class="muted">PowerChapter does not approach chambers cold. A member asking is different — it tells the chamber its own people want this.</p>' +
+    '<div class="field"><label for="askName">Your name</label><input class="input" id="askName" autocomplete="name"></div>' +
+    '<div class="field"><label for="askEmail">Your email</label><input class="input" id="askEmail" type="email" autocomplete="email"></div>' +
+    '<div class="field"><label for="askBiz">Your business</label><input class="input" id="askBiz" autocomplete="organization"></div>' +
+    '<p class="hint">' + esc(c.nm) + ' receives an introduction and the Acknowledgement Standard, and is told a member asked. Your details go to the chamber, not to a provider.</p>',
+    [{ t: 'Send the request', cls: 'btn-gold', fn: function () { toast('Prototype: nothing is sent. In production this reaches ' + c.city + ' and PowerChapter.'); } }, { t: 'Cancel', cls: 'btn-ghost' }]);
+}
+function claimListing(c) {
+  if (!c) return;
+  modal('Claim this listing', '<p class="muted">Listings come from public IRS records and are often out of date. A chamber can correct its name, address and contact details, or ask to be removed from the directory.</p>' +
+    '<div class="table-wrap"><table class="data"><tbody><tr><td>Listed name</td><td>' + esc(c.nm) + '</td></tr><tr><td>City</td><td>' + esc(c.city) + ', ' + c.st + '</td></tr><tr><td>EIN</td><td class="n">' + esc(c.ein) + '</td></tr></tbody></table></div>' +
+    '<p class="hint">Verification is by an email address at the chamber\'s own domain.</p>',
+    [{ t: 'Start a claim', cls: 'btn-primary', fn: function () { toast('Prototype: the claim flow is not configured.'); } }, { t: 'Close', cls: 'btn-ghost' }]);
+}
 function statePanel(st) {
   var t = TOT[st] || { e: 0, m: 0 }, here = C.CHAPTERS.filter(function (c) { return c.st === st; });
   var top = (TOP[st] || []).slice().sort(function (a, b) { return DATA[b][2] - DATA[a][2]; });
@@ -459,14 +539,26 @@ function statePanel(st) {
   } else {
     var n = null;
     if (hasMap && BYSTATE[st]) { var b = [[Infinity, Infinity], [-Infinity, -Infinity]]; BYSTATE[st].forEach(function (f) { var bb = BOUNDS[f.id]; b[0][0] = Math.min(b[0][0], bb[0][0]); b[0][1] = Math.min(b[0][1], bb[0][1]); b[1][0] = Math.max(b[1][0], bb[1][0]); b[1][1] = Math.max(b[1][1], bb[1][1]); }); var ll = proj.invert([(b[0][0] + b[1][0]) / 2, (b[0][1] + b[1][1]) / 2]); if (ll) n = nearestList({ lat: ll[1], lng: ll[0] })[0]; }
-    out += '<div class="empty"><b>No acknowledged chapter in ' + esc(STN[st]) + ' yet.</b><br>' + (n ? 'The closest is <button class="btn-link" type="button" data-ch="' + n.c.id + '" style="color:var(--accent)">' + esc(n.c.name) + '</button>, about ' + fmt(n.d) + ' miles from the center of the state. ' : '') + 'If your chamber operates here, it can apply for acknowledgement.<div class="acts" style="margin-top:12px"><a class="btn btn-gold btn-sm" href="#/for-chambers">Ask your chamber to apply</a></div></div>';
+    out += '<div class="empty"><b>No acknowledged chapter in ' + esc(STN[st]) + ' yet.</b><br>' + (n ? 'The closest is <button class="btn-link" type="button" data-ch="' + n.c.id + '" style="color:var(--accent)">' + esc(n.c.name) + '</button>, about ' + fmt(n.d) + ' miles from the center of the state. ' : '') + 'If your chamber operates here, it can apply for acknowledgement.' + (chamberCount(st) ? ' All ' + fmt(chamberCount(st)) + ' chambers registered here are listed below.' : '') + '<div class="acts" style="margin-top:12px"><a class="btn btn-gold btn-sm" href="#/for-chambers">How acknowledgement works</a></div></div>';
+  }
+  var lcs = (chambers(), CHAM_ST[st] || []);
+  if (lcs.length) {
+    var shown = lcs.slice();
+    if (S.loc) shown.sort(function (x, y) { return miles(S.loc, x) - miles(S.loc, y); });
+    if (!FINDER.lchAll) shown = shown.slice(0, 10);
+    out += '<div class="lbl"><span>Chambers listed in ' + esc(STN[st]) + '</span><span>' + fmt(lcs.length) + '</span></div>' +
+      '<p class="note" style="margin-top:-8px">Not acknowledged. From public IRS records' + (S.loc ? ', nearest first.' : ', alphabetical.') + '</p>' +
+      '<div>' + shown.map(listedRow).join('') + '</div>' +
+      (lcs.length > shown.length ? '<button class="btn-link" type="button" data-lchall style="color:var(--accent)">Show all ' + fmt(lcs.length) + ' in ' + esc(STN[st]) + '</button>' : '');
   }
   out += '<div class="lbl"><span>Largest business counties</span><span>Top 5</span></div><div>' + top.map(function (f, i) { var v = DATA[f], sid = SERVED[f]; return '<div class="row" data-hover="' + f + '"><span class="rank' + (sid ? '' : ' h') + '">' + (i + 1) + '</span><span class="nm"><b>' + esc(v[0]) + ' County</b><span>' + fmt(v[2]) + ' businesses · ' + pct(v[2], t.e) + ' of state</span></span><span class="rt">' + (sid ? '<button class="btn-link" type="button" data-ch="' + sid + '" style="color:var(--accent);font-size:.78rem">Served</button>' : 'No chapter') + '</span></div>'; }).join('') + '</div>';
   return out;
 }
 function networkPanel() {
   var list = S.loc ? nearestList(S.loc) : C.CHAPTERS.slice().sort(function (a, b) { return a.st.localeCompare(b.st); }).map(function (c) { return { c: c, d: null }; });
-  return '<div class="lbl"><span>' + (S.loc ? 'Nearest to ' + esc(S.loc.label || 'you') : 'Chapters in the network') + '</span><span class="sample">Sample chapters</span></div>' +
+  chambers();
+  return '<div class="kv" style="margin-bottom:2px"><div><small>Acknowledged chapters</small><b>' + C.CHAPTERS.length + '</b></div><div><small>Chambers listed nationwide</small><b>' + fmt(CHAM_N) + '</b></div></div>' +
+    '<div class="lbl"><span>' + (S.loc ? 'Nearest to ' + esc(S.loc.label || 'you') : 'Chapters in the network') + '</span><span class="sample">Sample chapters</span></div>' +
     '<div><h3>' + (S.loc ? 'Chapters near you' : 'Every acknowledged chapter') + '</h3><div class="sub" style="margin-top:4px">Select a chapter, click a state on the map, or search above.</div></div>' +
     '<div>' + list.map(function (it) { var c = it.c; return '<button class="row btnrow" type="button" data-ch="' + c.id + '"><span class="rank' + (c.status === 'live' ? '' : ' h') + '">' + c.st + '</span><span class="nm"><b>' + esc(c.name.replace('Sample Chapter — ', '')) + '</b><span>' + esc(c.city) + ', ' + c.st + ' · ' + (c.status === 'live' ? 'benefits live' : 'onboarding') + '</span></span><span class="rt">' + (it.d != null ? fmt(it.d) + ' mi' : '') + '</span></button>'; }).join('') + '</div>';
 }
